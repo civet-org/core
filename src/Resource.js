@@ -13,10 +13,7 @@ const getComparator = ({ name, ids, query, empty, options }) => ({
   options,
 });
 
-const getEmptyValue = (
-  { name, ids, query, empty, options, dataStore },
-  request,
-) => ({
+const getEmptyValue = ({ name, ids, query, empty, options, dataStore }, request) => ({
   name,
   ids,
   query,
@@ -45,8 +42,7 @@ class Resource extends Component {
         ds == null ||
         empty ||
         !persistent ||
-        (persistent !== 'very' &&
-          (prevState.ds !== ds || prevState._.name !== _.name))
+        (persistent !== 'very' && (prevState.ds !== ds || prevState._.name !== _.name))
       ) {
         nextState.value = getEmptyValue(nextProps, request);
       }
@@ -78,17 +74,11 @@ class Resource extends Component {
   componentDidUpdate(prevProps, prevState) {
     const { name, empty, dataStore } = this.props;
     const { request } = this.state;
-    if (
-      dataStore == null ||
-      prevProps.dataStore !== dataStore ||
-      prevProps.name !== name
-    ) {
+    if (dataStore == null || prevProps.dataStore !== dataStore || prevProps.name !== name) {
       if (this.unsubscribe) this.unsubscribe();
       this.unsubscribe = undefined;
       if (dataStore == null || empty) return;
-      this.unsubscribe = this.props.dataStore.subscribe(name, () =>
-        this.handleNotify(),
-      );
+      this.unsubscribe = this.props.dataStore.subscribe(name, () => this.handleNotify());
     }
     if (prevState.request !== request && !empty) {
       this.fetch(request);
@@ -108,10 +98,7 @@ class Resource extends Component {
       currentState => {
         if (request !== currentState.request) return null;
         return {
-          activeFetches: Math.min(
-            currentState.activeFetches + 1,
-            Number.MAX_SAFE_INTEGER,
-          ),
+          activeFetches: Math.min(currentState.activeFetches + 1, Number.MAX_SAFE_INTEGER),
         };
       },
       () => this.fetch(request),
@@ -164,11 +151,7 @@ class Resource extends Component {
       isStale: request !== value.request,
       notify: () => this.handleNotify(),
     };
-    return (
-      <ResourceContext.Provider value={context}>
-        {children}
-      </ResourceContext.Provider>
-    );
+    return <ResourceContext.Provider value={context}>{children}</ResourceContext.Provider>;
   }
 }
 

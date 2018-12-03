@@ -4,8 +4,7 @@ class Notifier {
   }
 
   subscribe(handler) {
-    if (typeof handler !== 'function')
-      throw new Error('Handler must be a function');
+    if (typeof handler !== 'function') throw new Error('Handler must be a function');
     this.subscriptions.push(handler);
     return () => {
       this.subscriptions = this.subscriptions.filter(item => item !== handler);

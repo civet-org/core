@@ -9,8 +9,7 @@ class DataStore {
 
   subscribe(resource, handler) {
     if (!resource) throw new Error('No resource specified');
-    if (!this.subscriptions[resource])
-      this.subscriptions[resource] = new Notifier();
+    if (!this.subscriptions[resource]) this.subscriptions[resource] = new Notifier();
     return this.subscriptions[resource].subscribe(handler);
   }
 
@@ -27,17 +26,14 @@ class DataStore {
       if (!resource) throw new Error('No resource specified');
       if (ids != null) {
         if (!Array.isArray(ids)) throw new Error('IDs must be an array');
-        if (query != null)
-          throw new Error("IDs and query aren't allowed at the same time");
+        if (query != null) throw new Error("IDs and query aren't allowed at the same time");
       }
       resolve(
-        Promise.resolve(this.handleGet(resource, ids, query, options)).then(
-          result => {
-            if (result == null) return [];
-            if (Array.isArray(result)) return result;
-            return [result];
-          },
-        ),
+        Promise.resolve(this.handleGet(resource, ids, query, options)).then(result => {
+          if (result == null) return [];
+          if (Array.isArray(result)) return result;
+          return [result];
+        }),
       );
     });
   }
@@ -46,11 +42,7 @@ class DataStore {
     return new Promise(resolve => {
       if (!resource) throw new Error('No resource specified');
       if (!data) throw new Error('No data specified');
-      resolve(
-        Promise.resolve(this.handleCreate(resource, data, options)).then(
-          () => {},
-        ),
-      );
+      resolve(Promise.resolve(this.handleCreate(resource, data, options)).then(() => {}));
     });
   }
 
@@ -59,14 +51,11 @@ class DataStore {
       if (!resource) throw new Error('No resource specified');
       if (ids != null) {
         if (!Array.isArray(ids)) throw new Error('IDs must be an array');
-        if (query != null)
-          throw new Error("IDs and query aren't allowed at the same time");
+        if (query != null) throw new Error("IDs and query aren't allowed at the same time");
       }
       if (!data) throw new Error('No data specified');
       resolve(
-        Promise.resolve(
-          this.handleUpdate(resource, ids, query, data, options),
-        ).then(() => {}),
+        Promise.resolve(this.handleUpdate(resource, ids, query, data, options)).then(() => {}),
       );
     });
   }
@@ -76,14 +65,11 @@ class DataStore {
       if (!resource) throw new Error('No resource specified');
       if (ids != null) {
         if (!Array.isArray(ids)) throw new Error('IDs must be an array');
-        if (query != null)
-          throw new Error("IDs and query aren't allowed at the same time");
+        if (query != null) throw new Error("IDs and query aren't allowed at the same time");
       }
       if (!data) throw new Error('No data specified');
       resolve(
-        Promise.resolve(
-          this.handlePatch(resource, ids, query, data, options),
-        ).then(() => {}),
+        Promise.resolve(this.handlePatch(resource, ids, query, data, options)).then(() => {}),
       );
     });
   }
@@ -93,14 +79,9 @@ class DataStore {
       if (!resource) throw new Error('No resource specified');
       if (ids != null) {
         if (!Array.isArray(ids)) throw new Error('IDs must be an array');
-        if (query != null)
-          throw new Error("IDs and query aren't allowed at the same time");
+        if (query != null) throw new Error("IDs and query aren't allowed at the same time");
       }
-      resolve(
-        Promise.resolve(this.handleRemove(resource, ids, query, options)).then(
-          () => {},
-        ),
-      );
+      resolve(Promise.resolve(this.handleRemove(resource, ids, query, options)).then(() => {}));
     });
   }
 }
