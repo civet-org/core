@@ -9,7 +9,8 @@
     "build": "cross-env BABEL_ENV=commonjs babel src --out-dir lib",
     "lint": "eslint src",
     "prepare": "npm run lint && npm run build",
-    "postversion": "cross-var \"git add package.json package-lock.json && git commit -m$npm_package_version\"",
+    "preversion": "git diff HEAD --name-only --exit-code || (echo -\\> unclean working directory && exit 1)",
+    "postversion": "cross-var git commit -am$npm_package_version",
     "prettify": "prettier --write src/**"
   },
   "files": [
