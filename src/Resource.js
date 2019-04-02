@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import deepEquals from 'fast-deep-equal';
+import uuid from 'uuid/v1';
 
 import { ConfigContext, ResourceContext } from './context';
 import { dataStorePropType } from './DataStore';
@@ -30,7 +31,7 @@ class Resource extends Component {
     const { empty, dataStore: ds, persistent } = nextProps;
     const _ = getComparator(nextProps);
     if (prevState.ds !== ds || !deepEquals(prevState._, _)) {
-      const request = (prevState.request + 1) % Number.MAX_SAFE_INTEGER;
+      const request = uuid();
       const nextState = {
         _,
         ds,
@@ -54,12 +55,13 @@ class Resource extends Component {
   constructor(props) {
     super(props);
     const { empty, dataStore: ds } = props;
+    const request = uuid();
     this.state = {
       _: getComparator(props),
       ds,
-      request: 0,
+      request,
       activeFetches: ds == null || empty ? 0 : 1,
-      value: getEmptyValue(props, 0),
+      value: getEmptyValue(props, request),
     };
   }
 
