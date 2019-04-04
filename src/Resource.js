@@ -27,7 +27,7 @@ const getEmptyValue = ({ name, ids, query, empty, options, dataStore }, request)
 });
 
 /**
- * The <Resource> context provider is used to provide data and corresponding status information to underlying components. 
+ * The <Resource> context provider is used to provide data and corresponding status information to underlying components.
  * Configuration is taken from the nearest higher-level <ConfigProvider> if not individually specified.
  */
 
