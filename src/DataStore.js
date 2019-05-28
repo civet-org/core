@@ -86,9 +86,11 @@ class DataStore {
     const prevItems = [...prevData];
     const result = nextData.map(nextItem => {
       const i = prevItems.findIndex(item => deepEquals(item, nextItem));
-      if (i === -1) return nextItem;
-      const [match] = prevItems.splice(i, 1);
-      return match;
+      if (i >= 0) {
+        const [prevItem] = prevItems.splice(i, 1);
+        return prevItem;
+      }
+      return nextItem;
     });
     if (
       prevData.length === result.length &&
