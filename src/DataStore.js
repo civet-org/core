@@ -83,20 +83,19 @@ class DataStore {
   }
 
   recycleItems(nextData, prevData) {
-    if (deepEquals(prevData, nextData)) {
+    const prevItems = [...prevData];
+    const result = nextData.map(nextItem => {
+      const i = prevItems.findIndex(item => deepEquals(item, nextItem));
+      if (i === -1) return nextItem;
+      const [match] = prevItems.splice(i, 1);
+      return match;
+    });
+    if (
+      prevData.length === result.length &&
+      result.reduce((sum, item, i) => sum && prevData[i] === item, true)
+    ) {
       return prevData;
     }
-    const items = [...prevData];
-    const result = [];
-    nextData.forEach(nextItem => {
-      const i = items.findIndex(item => deepEquals(item, nextItem));
-      if (i === -1) {
-        result.push(nextItem);
-      } else {
-        result.push(items[i]);
-        items.splice(i, 1);
-      }
-    });
     return result;
   }
 }
