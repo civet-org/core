@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import deepEquals from 'fast-deep-equal';
 
 import Notifier from './Notifier';
 
@@ -42,7 +43,7 @@ class DataStore {
     return new Promise(resolve => {
       if (!resource) throw new Error('No resource specified');
       if (!data) throw new Error('No data specified');
-      resolve(Promise.resolve(this.handleCreate(resource, data, options)).then(() => {}));
+      resolve(Promise.resolve(this.handleCreate(resource, data, options)));
     });
   }
 
@@ -54,9 +55,7 @@ class DataStore {
         if (query != null) throw new Error("IDs and query aren't allowed at the same time");
       }
       if (!data) throw new Error('No data specified');
-      resolve(
-        Promise.resolve(this.handleUpdate(resource, ids, query, data, options)).then(() => {}),
-      );
+      resolve(Promise.resolve(this.handleUpdate(resource, ids, query, data, options)));
     });
   }
 
@@ -68,9 +67,7 @@ class DataStore {
         if (query != null) throw new Error("IDs and query aren't allowed at the same time");
       }
       if (!data) throw new Error('No data specified');
-      resolve(
-        Promise.resolve(this.handlePatch(resource, ids, query, data, options)).then(() => {}),
-      );
+      resolve(Promise.resolve(this.handlePatch(resource, ids, query, data, options)));
     });
   }
 
@@ -81,8 +78,26 @@ class DataStore {
         if (!Array.isArray(ids)) throw new Error('IDs must be an array');
         if (query != null) throw new Error("IDs and query aren't allowed at the same time");
       }
-      resolve(Promise.resolve(this.handleRemove(resource, ids, query, options)).then(() => {}));
+      resolve(Promise.resolve(this.handleRemove(resource, ids, query, options)));
     });
+  }
+
+  recycleItems(nextData, prevData) {
+    if (deepEquals(prevData, nextData)) {
+      return prevData;
+    }
+    const items = [...prevData];
+    const result = [];
+    nextData.forEach(nextItem => {
+      const i = items.findIndex(item => deepEquals(item, nextItem));
+      if (i === -1) {
+        result.push(nextItem);
+      } else {
+        result.push(items[i]);
+        items.splice(i, 1);
+      }
+    });
+    return result;
   }
 }
 
