@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import deepEquals from 'fast-deep-equal';
 
 import Notifier from './Notifier';
 
@@ -83,6 +84,25 @@ class DataStore {
       }
       resolve(Promise.resolve(this.handleRemove(resource, ids, query, options)).then(() => {}));
     });
+  }
+
+  recycleItems(nextData, prevData) {
+    if (deepEquals(prevData, nextData)) {
+      return prevData;
+    }
+    const items = [...prevData];
+    const result = [];
+    nextData.forEach(nextItem => {
+      const i = items.findIndex(item => deepEquals(item, nextItem));
+      if (i === -1) {
+        result.push(nextItem);
+      } else {
+        result.push(items[i]);
+        items.splice(i, 1);
+      }
+    });
+
+    return result;
   }
 }
 
