@@ -5,6 +5,7 @@ import uuid from 'uuid/v1';
 
 import { ConfigContext, ResourceContext } from './context';
 import { dataStorePropType } from './DataStore';
+import Meta from './Meta';
 
 const getComparator = ({ name, ids, query, empty, options }) => ({
   name,
@@ -22,6 +23,7 @@ const getEmptyValue = ({ name, ids, query, empty, options, dataStore }, request)
   dataStore,
   request,
   data: [],
+  meta: {},
   error: undefined,
   isEmpty: Boolean(empty),
 });
@@ -115,8 +117,9 @@ class Resource extends Component {
     const { ...props } = this.props;
     const { name, ids, query, options, dataStore } = props;
     if (request !== this.state.request || this.isUnmounted) return;
+    const meta = new Meta();
     dataStore
-      .get(name, ids, query, options)
+      .get(name, ids, query, options, meta)
       .then(data => ({ data }))
       .catch(error => {
         if (error == null) return { error: true };
@@ -141,6 +144,7 @@ class Resource extends Component {
             value: {
               ...getEmptyValue(props, request),
               data: dataStore.recycleItems(nextState.data, currentState.value.data),
+              meta: meta.commit(currentState.value.meta),
             },
           };
         });
