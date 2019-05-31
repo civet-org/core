@@ -27,10 +27,9 @@ const getEmptyValue = ({ name, ids, query, empty, options, dataStore }, request)
 });
 
 /**
- * The <Resource> context provider is used to provide data and corresponding status information to underlying components.
- * Configuration is taken from the nearest higher-level <ConfigProvider> if not individually specified.
+ * Makes data from an DataStore available to its descendants using React's context API.
+ * If not explicitly specified, necessary configuration is taken from the nearest <ConfigProvider>.
  */
-
 class Resource extends Component {
   static getDerivedStateFromProps(nextProps, prevState) {
     const { empty, dataStore: ds, persistent } = nextProps;
@@ -164,31 +163,31 @@ class Resource extends Component {
 
 Resource.propTypes = {
   /**
-   * The resource’s name
+   * Resource name
    */
   name: PropTypes.string.isRequired,
   /**
-   * The IDs used to fetch the data (instead of query)
+   * IDs to be queried (in place of query)
    */
   ids: PropTypes.array,
   /**
-   * The query used to fetch the data (instead of ids). See https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html
+   * Query filter (in place of ids)
    */
   query: PropTypes.any,
   /**
-   * Whether there should be no data fetched
+   * Whether to prevent fetching data
    */
   empty: PropTypes.bool,
   /**
-   * Whether there should be no data fetched
+   * DataStore options for requests
    */
   options: PropTypes.object,
   /**
-   * DataStore implementation.
+   * DataStore to be used for requests
    */
   dataStore: dataStorePropType.isRequired,
   /**
-   * Whether stale data should be preserved while fetching the next request - this will only apply if neither dataStore nor name have changed, except when set to “very”
+   * Whether stale data should be retained during the next request - this only applies if neither dataStore nor name have changed, unless set to "very"
    */
   persistent: PropTypes.oneOfType([PropTypes.bool, PropTypes.oneOf(['very'])]),
   children: PropTypes.node,
