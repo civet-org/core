@@ -5,4 +5,4 @@ export const { Provider: ResourceProvider, Consumer: ResourceConsumer } = Resour
 
 export { default as ConfigProvider } from './ConfigProvider';
 export { default as Resource } from './Resource';
-export { default as DataStore } from './DataStore';
+export { default as DataStore, isDataStore, dataStorePropType } from './DataStore';
