@@ -51,13 +51,13 @@
     "eslint-plugin-prettier": "3.0.0",
     "eslint-plugin-react": "7.11.1",
     "prettier": "1.15.3",
-    "react": "16.6.3",
-    "react-dom": "16.6.3",
+    "react": "16.8.6",
+    "react-dom": "16.8.6",
     "rimraf": "2.6.2"
   },
   "peerDependencies": {
-    "react": ">= 16.3.0",
-    "react-dom": ">= 16.3.0"
+    "react": ">= 16.8",
+    "react-dom": ">= 16.8"
   },
   "dependencies": {
     "fast-deep-equal": "2.0.1",
