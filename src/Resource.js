@@ -155,7 +155,12 @@ class Resource extends Component {
           activeFetches,
           value: {
             ...getEmptyValue(props, request, revision, false),
-            data: dataStore.recycleItems(data, currentState.value.data),
+            data: dataStore.recycleItems(
+              data,
+              currentState.value.data,
+              request !== currentState.value.request,
+              revision !== currentState.value.revision,
+            ),
             meta: meta.commit(currentState.value.meta),
             isIncomplete: !done,
           },
