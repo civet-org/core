@@ -6,6 +6,7 @@ import uuid from 'uuid/v1';
 import { ConfigContext, ResourceContext } from './context';
 import { dataStorePropType } from './DataStore';
 import Meta from './Meta';
+import AbortSignal from './AbortSignal';
 
 const getComparator = ({ name, ids, query, empty, options }) => ({
   name,
@@ -15,17 +16,19 @@ const getComparator = ({ name, ids, query, empty, options }) => ({
   options,
 });
 
-const getEmptyValue = ({ name, ids, query, empty, options, dataStore }, request) => ({
+const getEmptyValue = ({ name, ids, query, options, dataStore }, request, revision, empty) => ({
   name,
   ids,
   query,
   options,
   dataStore,
   request,
+  revision,
   data: [],
   meta: {},
   error: undefined,
-  isEmpty: Boolean(empty),
+  isEmpty: empty,
+  isIncomplete: !empty,
 });
 
 /**
@@ -38,20 +41,22 @@ class Resource extends Component {
     const _ = getComparator(nextProps);
     if (prevState.ds !== ds || !deepEquals(prevState._, _)) {
       const request = uuid();
+      const revision = uuid();
+      const isEmpty = ds == null || empty;
       const nextState = {
         _,
         ds,
         request,
-        activeFetches: ds == null || empty ? 0 : 1,
+        revision,
+        activeFetches: isEmpty ? 0 : 1,
       };
       if (
         prevState.ds == null ||
-        ds == null ||
-        empty ||
+        isEmpty ||
         !persistent ||
         (persistent !== 'very' && (prevState.ds !== ds || prevState._.name !== _.name))
       ) {
-        nextState.value = getEmptyValue(nextProps, request);
+        nextState.value = getEmptyValue(nextProps, request, revision, isEmpty);
       }
       return nextState;
     }
@@ -62,93 +67,103 @@ class Resource extends Component {
     super(props);
     const { empty, dataStore: ds } = props;
     const request = uuid();
+    const revision = uuid();
+    const isEmpty = ds == null || empty;
     this.state = {
       _: getComparator(props),
       ds,
       request,
-      activeFetches: ds == null || empty ? 0 : 1,
-      value: getEmptyValue(props, request),
+      revision,
+      activeFetches: isEmpty ? 0 : 1,
+      value: getEmptyValue(props, request, revision, isEmpty),
     };
   }
 
   componentDidMount() {
     const { name, empty, dataStore } = this.props;
-    const { request } = this.state;
+    const { request, revision } = this.state;
     if (dataStore == null || empty) return;
     this.unsubscribe = dataStore.subscribe(name, () => this.handleNotify());
-    this.fetch(request);
+    this.fetch(request, revision);
   }
 
   componentDidUpdate(prevProps, prevState) {
     const { name, empty, dataStore } = this.props;
-    const { request } = this.state;
+    const { request, revision } = this.state;
+    if (prevState.request !== request || prevState.revision !== revision) {
+      if (this.abortSignal) this.abortSignal.abort();
+      this.abortSignal = undefined;
+    }
     if (dataStore == null || prevProps.dataStore !== dataStore || prevProps.name !== name) {
       if (this.unsubscribe) this.unsubscribe();
       this.unsubscribe = undefined;
       if (dataStore == null || empty) return;
       this.unsubscribe = dataStore.subscribe(name, () => this.handleNotify());
     }
-    if (prevState.request !== request && !empty) {
-      this.fetch(request);
+    if ((prevState.request !== request || prevState.revision !== revision) && !empty) {
+      this.fetch(request, revision);
     }
   }
 
   componentWillUnmount() {
     this.isUnmounted = true;
     if (this.unsubscribe) this.unsubscribe();
+    if (this.abortSignal) this.abortSignal.abort();
   }
 
   handleNotify = () => {
     const { empty, dataStore } = this.props;
     const { request } = this.state;
     if (dataStore == null || empty) return;
-    this.setState(
-      currentState => {
-        if (request !== currentState.request) return null;
-        return {
-          activeFetches: Math.min(currentState.activeFetches + 1, Number.MAX_SAFE_INTEGER),
-        };
-      },
-      () => this.fetch(request),
-    );
+    this.setState(currentState => {
+      if (request !== currentState.request) return null;
+      return {
+        activeFetches: Math.min(currentState.activeFetches + 1, Number.MAX_SAFE_INTEGER),
+        revision: uuid(),
+      };
+    });
   };
 
-  fetch(request) {
+  fetch(request, revision) {
     const { ...props } = this.props;
     const { name, ids, query, options, dataStore } = props;
-    if (request !== this.state.request || this.isUnmounted) return;
+    if (this.isUnmounted) {
+      return;
+    }
+
     const meta = new Meta();
-    dataStore
-      .get(name, ids, query, options, meta)
-      .then(data => ({ data }))
-      .catch(error => {
-        if (error == null) return { error: true };
-        return { error };
-      })
-      .then(nextState => {
-        if (this.isUnmounted) return;
-        this.setState(currentState => {
-          if (request !== currentState.request) return null;
-          const activeFetches = Math.max(currentState.activeFetches - 1, 0);
-          if (nextState.error != null) {
-            return {
-              activeFetches,
-              value: {
-                ...currentState.value,
-                error: nextState.error,
-              },
-            };
-          }
+    const signal = new AbortSignal();
+    this.abortSignal = signal;
+
+    const callback = (error, done, data) => {
+      if (this.isUnmounted) return;
+      this.setState(currentState => {
+        if (request !== currentState.request || revision !== currentState.revision) return null;
+        let { activeFetches } = currentState;
+        if (error != null || done) activeFetches = Math.max(currentState.activeFetches - 1, 0);
+        if (error != null) {
           return {
             activeFetches,
             value: {
-              ...getEmptyValue(props, request),
-              data: dataStore.recycleItems(nextState.data, currentState.value.data),
-              meta: meta.commit(currentState.value.meta),
+              ...currentState.value,
+              error,
+              isIncomplete: false,
             },
           };
-        });
+        }
+        return {
+          activeFetches,
+          value: {
+            ...getEmptyValue(props, request, revision, false),
+            data: dataStore.recycleItems(data, currentState.value.data),
+            meta: meta.commit(currentState.value.meta),
+            isIncomplete: !done,
+          },
+        };
       });
+    };
+
+    dataStore.continuousGet(name, ids, query, options, meta, callback, signal);
   }
 
   render() {
