@@ -126,6 +126,10 @@ class DataStore {
     });
   }
 
+  transitionItems(nextData) {
+    return nextData;
+  }
+
   recycleItems(nextData, prevData) {
     const prevItems = [...prevData];
     const result = nextData.map(nextItem => {

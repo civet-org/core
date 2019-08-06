@@ -151,18 +151,24 @@ class Resource extends Component {
             },
           };
         }
+
+        const { data: prevData, ...prevContext } = currentState.value;
+        const context = {
+          ...getEmptyValue(props, request, revision, false),
+          meta: meta.commit(prevContext.meta),
+          isIncomplete: !done,
+        };
+
         return {
           activeFetches,
           value: {
-            ...getEmptyValue(props, request, revision, false),
+            ...context,
             data: dataStore.recycleItems(
-              data,
-              currentState.value.data,
-              request !== currentState.value.request,
-              revision !== currentState.value.revision,
+              dataStore.transition(data, prevData, context, prevContext),
+              prevData,
+              context,
+              prevContext,
             ),
-            meta: meta.commit(currentState.value.meta),
-            isIncomplete: !done,
           },
         };
       });
