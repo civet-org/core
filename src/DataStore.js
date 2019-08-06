@@ -126,7 +126,7 @@ class DataStore {
     });
   }
 
-  transitionItems(nextData) {
+  transition(nextData) {
     return nextData;
   }
 
