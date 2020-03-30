@@ -4,7 +4,7 @@ import AbortSignal from './AbortSignal';
 import Meta from './Meta';
 import Notifier from './Notifier';
 
-const getMeta = meta => (meta instanceof Meta ? meta : new Meta(meta));
+const getMeta = (meta) => (meta instanceof Meta ? meta : new Meta(meta));
 
 class DataStore {
   constructor() {
@@ -19,7 +19,7 @@ class DataStore {
 
   notify(resource) {
     if (resource == null) {
-      Object.values(this.subscriptions).forEach(notifier => notifier.trigger());
+      Object.values(this.subscriptions).forEach((notifier) => notifier.trigger());
     } else if (this.subscriptions[resource]) {
       this.subscriptions[resource].trigger();
     }
@@ -38,7 +38,7 @@ class DataStore {
   }
 
   continuousGet(resource, ids, query, options, meta, callback, abortSignal) {
-    new Promise(resolve => {
+    new Promise((resolve) => {
       if (resource == null) throw new Error('No resource specified');
       if (ids != null) {
         if (!Array.isArray(ids)) throw new Error('IDs must be an array');
@@ -64,7 +64,7 @@ class DataStore {
 
       resolve(
         Promise.resolve(this.handleGet(resource, ids, query, options, getMeta(meta))).then(
-          result => {
+          (result) => {
             if (typeof result === 'function') {
               result(cb, signal);
             } else {
@@ -73,13 +73,13 @@ class DataStore {
           },
         ),
       );
-    }).catch(e => {
+    }).catch((e) => {
       callback(e, true, []);
     });
   }
 
   create(resource, data, options, meta) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (resource == null) throw new Error('No resource specified');
       if (data == null) throw new Error('No data specified');
       resolve(Promise.resolve(this.handleCreate(resource, data, options, getMeta(meta))));
@@ -87,7 +87,7 @@ class DataStore {
   }
 
   update(resource, ids, query, data, options, meta) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (resource == null) throw new Error('No resource specified');
       if (ids != null) {
         if (!Array.isArray(ids)) throw new Error('IDs must be an array');
@@ -101,7 +101,7 @@ class DataStore {
   }
 
   patch(resource, ids, query, data, options, meta) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (resource == null) throw new Error('No resource specified');
       if (ids != null) {
         if (!Array.isArray(ids)) throw new Error('IDs must be an array');
@@ -115,7 +115,7 @@ class DataStore {
   }
 
   remove(resource, ids, query, options, meta) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (resource == null) throw new Error('No resource specified');
       if (ids != null) {
         if (!Array.isArray(ids)) throw new Error('IDs must be an array');
@@ -134,7 +134,7 @@ class DataStore {
   }
 }
 
-const isDataStore = dataStore => dataStore instanceof DataStore;
+const isDataStore = (dataStore) => dataStore instanceof DataStore;
 
 const dataStorePropType = PropTypes.instanceOf(DataStore);
 

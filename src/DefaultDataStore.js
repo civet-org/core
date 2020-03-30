@@ -13,8 +13,8 @@ class DefaultDataStore extends BaseDataStore {
 
   recycleItems(nextData, prevData) {
     const prevItems = [...prevData];
-    const result = nextData.map(nextItem => {
-      const i = prevItems.findIndex(item => this.recycleItemsCompareIdentity(nextItem, item));
+    const result = nextData.map((nextItem) => {
+      const i = prevItems.findIndex((item) => this.recycleItemsCompareIdentity(nextItem, item));
       if (i >= 0) {
         const [prevItem] = prevItems.splice(i, 1);
         if (this.recycleItemsIsUnchanged(nextItem, prevItem)) return prevItem;
