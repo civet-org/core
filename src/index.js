@@ -10,3 +10,4 @@ export { default as BaseDataStore, isDataStore, dataStorePropType } from './Data
 export { default as DataStore } from './DefaultDataStore';
 export { default as AbortSignal } from './AbortSignal';
 export { default as Meta } from './Meta';
+export { default as createPlugin } from './createPlugin';

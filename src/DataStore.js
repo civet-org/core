@@ -7,9 +7,7 @@ import Notifier from './Notifier';
 const getMeta = (meta) => (meta instanceof Meta ? meta : new Meta(meta));
 
 class DataStore {
-  constructor() {
-    this.subscriptions = {};
-  }
+  subscriptions = {};
 
   subscribe(resource, handler) {
     if (resource == null) throw new Error('No resource specified');
