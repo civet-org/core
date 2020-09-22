@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import deepEquals from 'fast-deep-equal';
-import uuid from 'uuid/v1';
+import { v1 as uuid } from 'uuid';
 
 import { ConfigContext, ResourceContext } from './context';
 import { dataStorePropType } from './DataStore';
@@ -189,16 +189,30 @@ class Resource extends Component {
   }
 
   render() {
-    const { children } = this.props;
+    const { children, ...rest } = this.props;
     const { request, isLoading, value } = this.state;
     if (value.dataStore == null) return null;
-    const context = {
+    const contextValue = {
       ...value,
       isLoading,
       isStale: request !== value.request,
       notify: this.handleNotify,
     };
-    return <ResourceContext.Provider value={context}>{children}</ResourceContext.Provider>;
+    const plugins = Array.isArray(value.dataStore.resourcePlugins)
+      ? value.dataStore.resourcePlugins
+      : [];
+    const renderProvider = (context) => (
+      <ResourceContext.Provider value={context}>{children}</ResourceContext.Provider>
+    );
+    return plugins.reduce((next, Plugin) => {
+      if (Plugin == null) return next;
+      return (context) => (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <Plugin {...rest} context={context}>
+          {next}
+        </Plugin>
+      );
+    }, renderProvider)(contextValue);
   }
 }
 
