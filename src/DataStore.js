@@ -1,26 +1,21 @@
 import PropTypes from 'prop-types';
 
 import AbortSignal from './AbortSignal';
+import ChannelNotifier from './ChannelNotifier';
 import Meta from './Meta';
-import Notifier from './Notifier';
 
 const getMeta = (meta) => (meta instanceof Meta ? meta : new Meta(meta));
 
 class DataStore {
-  subscriptions = {};
+  notifier = new ChannelNotifier();
 
   subscribe(resource, handler) {
     if (resource == null) throw new Error('No resource specified');
-    if (this.subscriptions[resource] == null) this.subscriptions[resource] = new Notifier();
-    return this.subscriptions[resource].subscribe(handler);
+    return this.notifier.subscribe(resource, handler);
   }
 
   notify(resource) {
-    if (resource == null) {
-      Object.values(this.subscriptions).forEach((notifier) => notifier.trigger());
-    } else if (this.subscriptions[resource]) {
-      this.subscriptions[resource].trigger();
-    }
+    this.notifier.trigger(resource);
   }
 
   get(resource, ids, query, options, meta) {
