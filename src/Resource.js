@@ -94,7 +94,7 @@ class Resource extends Component {
     const { name, empty, dataStore } = this.props;
     const { request, revision } = this.state;
     if (dataStore == null || empty) return;
-    this.unsubscribe = dataStore.subscribe(name, () => this.handleNotify());
+    this.unsubscribe = dataStore.subscribe(name, this.notify);
     this.fetch(request, revision);
   }
 
@@ -109,7 +109,7 @@ class Resource extends Component {
       if (this.unsubscribe) this.unsubscribe();
       this.unsubscribe = undefined;
       if (dataStore == null || empty) return;
-      this.unsubscribe = dataStore.subscribe(name, () => this.handleNotify());
+      this.unsubscribe = dataStore.subscribe(name, this.notify);
     }
     if ((prevState.request !== request || prevState.revision !== revision) && !empty) {
       this.fetch(request, revision);
@@ -122,7 +122,7 @@ class Resource extends Component {
     if (this.abortSignal) this.abortSignal.abort();
   }
 
-  handleNotify = () => {
+  notify = () => {
     const { empty, dataStore } = this.props;
     const { request } = this.state;
     if (dataStore == null || empty) return;
@@ -196,7 +196,7 @@ class Resource extends Component {
       ...value,
       isLoading,
       isStale: request !== value.request,
-      notify: this.handleNotify,
+      notify: this.notify,
     };
     const plugins = Array.isArray(value.dataStore.resourcePlugins)
       ? value.dataStore.resourcePlugins
@@ -204,7 +204,7 @@ class Resource extends Component {
     const renderProvider = (context) => (
       <ResourceContext.Provider value={context}>{children}</ResourceContext.Provider>
     );
-    return plugins.reduce((next, Plugin) => {
+    return plugins.reduceRight((next, Plugin) => {
       if (Plugin == null) return next;
       return (context) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
