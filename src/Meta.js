@@ -1,5 +1,3 @@
-import deepEquals from 'fast-deep-equal';
-
 class Meta {
   constructor(base) {
     this.data = base == null ? {} : base;
@@ -42,9 +40,16 @@ class Meta {
   }
 
   commit(prev) {
-    const freezed = JSON.parse(JSON.stringify(this.data));
-    if (prev != null && deepEquals(prev, freezed)) return prev;
-    return freezed;
+    const next = { ...this.data };
+    const keys = Object.keys(next);
+    if (
+      prev != null &&
+      Object.keys(prev).length === keys.length &&
+      keys.reduce((sum, key) => sum && Object.is(next[key], prev[key]), true)
+    ) {
+      return prev;
+    }
+    return next;
   }
 }
 
