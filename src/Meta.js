@@ -42,8 +42,9 @@ class Meta {
   }
 
   commit(prev) {
-    if (prev != null && deepEquals(prev, this.data)) return prev;
-    return JSON.parse(JSON.stringify(this.data));
+    const freezed = JSON.parse(JSON.stringify(this.data));
+    if (prev != null && deepEquals(prev, freezed)) return prev;
+    return freezed;
   }
 }
 
