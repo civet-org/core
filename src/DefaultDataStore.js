@@ -1,10 +1,10 @@
-import deepEquals from 'fast-deep-equal';
+import objectHash from 'object-hash';
 
 import BaseDataStore from './DataStore';
 
 class DefaultDataStore extends BaseDataStore {
-  recycleItemsCompareIdentity(nextItem, prevItem) {
-    return deepEquals(nextItem, prevItem);
+  recycleItemsUniqueIdentifier(item) {
+    return objectHash(item);
   }
 
   recycleItemsIsUnchanged() {
@@ -12,11 +12,14 @@ class DefaultDataStore extends BaseDataStore {
   }
 
   recycleItems(nextData, prevData) {
-    const prevItems = [...prevData];
+    const prevMapping = {};
+    prevData.forEach((item) => {
+      prevMapping[this.recycleItemsUniqueIdentifier(item)] = item;
+    });
     const result = nextData.map((nextItem) => {
-      const i = prevItems.findIndex((item) => this.recycleItemsCompareIdentity(nextItem, item));
-      if (i >= 0) {
-        const [prevItem] = prevItems.splice(i, 1);
+      const identifier = this.recycleItemsUniqueIdentifier(nextItem);
+      if (Object.prototype.hasOwnProperty.call(prevMapping, identifier)) {
+        const prevItem = prevMapping[identifier];
         if (this.recycleItemsIsUnchanged(nextItem, prevItem)) return prevItem;
       }
       return nextItem;
