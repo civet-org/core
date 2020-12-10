@@ -23,7 +23,7 @@ class DataStore {
   extend() {}
 
   subscribe(resource, handler) {
-    if (resource == null) throw new Error('No resource specified');
+    if (resource == null) throw new Error('No resource name specified');
     return this.notifier.subscribe(resource, handler);
   }
 
@@ -45,11 +45,8 @@ class DataStore {
 
   continuousGet(resource, ids, query, options, meta, callback, abortSignal) {
     new Promise((resolve) => {
-      if (resource == null) throw new Error('No resource specified');
-      if (ids != null) {
-        if (!Array.isArray(ids)) throw new Error('IDs must be an array');
-        if (query != null) throw new Error("IDs and query aren't allowed at the same time");
-      }
+      if (resource == null) throw new Error('No resource name specified');
+      if (ids != null && !Array.isArray(ids)) throw new Error('IDs must be an array');
 
       let complete = false;
       const signal = abortSignal == null ? new AbortSignal() : abortSignal;
@@ -86,7 +83,7 @@ class DataStore {
 
   create(resource, data, options, meta) {
     return new Promise((resolve) => {
-      if (resource == null) throw new Error('No resource specified');
+      if (resource == null) throw new Error('No resource name specified');
       if (data == null) throw new Error('No data specified');
       resolve(Promise.resolve(this.handleCreate(resource, data, options, getMeta(meta))));
     });
@@ -94,11 +91,8 @@ class DataStore {
 
   update(resource, ids, query, data, options, meta) {
     return new Promise((resolve) => {
-      if (resource == null) throw new Error('No resource specified');
-      if (ids != null) {
-        if (!Array.isArray(ids)) throw new Error('IDs must be an array');
-        if (query != null) throw new Error("IDs and query aren't allowed at the same time");
-      }
+      if (resource == null) throw new Error('No resource name specified');
+      if (ids != null && !Array.isArray(ids)) throw new Error('IDs must be an array');
       if (data == null) throw new Error('No data specified');
       resolve(
         Promise.resolve(this.handleUpdate(resource, ids, query, data, options, getMeta(meta))),
@@ -108,11 +102,8 @@ class DataStore {
 
   patch(resource, ids, query, data, options, meta) {
     return new Promise((resolve) => {
-      if (resource == null) throw new Error('No resource specified');
-      if (ids != null) {
-        if (!Array.isArray(ids)) throw new Error('IDs must be an array');
-        if (query != null) throw new Error("IDs and query aren't allowed at the same time");
-      }
+      if (resource == null) throw new Error('No resource name specified');
+      if (ids != null && !Array.isArray(ids)) throw new Error('IDs must be an array');
       if (data == null) throw new Error('No data specified');
       resolve(
         Promise.resolve(this.handlePatch(resource, ids, query, data, options, getMeta(meta))),
@@ -122,11 +113,8 @@ class DataStore {
 
   remove(resource, ids, query, options, meta) {
     return new Promise((resolve) => {
-      if (resource == null) throw new Error('No resource specified');
-      if (ids != null) {
-        if (!Array.isArray(ids)) throw new Error('IDs must be an array');
-        if (query != null) throw new Error("IDs and query aren't allowed at the same time");
-      }
+      if (resource == null) throw new Error('No resource name specified');
+      if (ids != null && !Array.isArray(ids)) throw new Error('IDs must be an array');
       resolve(Promise.resolve(this.handleRemove(resource, ids, query, options, getMeta(meta))));
     });
   }
