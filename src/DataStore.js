@@ -1,3 +1,4 @@
+import deepEquals from 'fast-deep-equal';
 import PropTypes from 'prop-types';
 
 import AbortSignal from './AbortSignal';
@@ -125,6 +126,10 @@ class DataStore {
 
   recycleItems(nextData) {
     return nextData;
+  }
+
+  compareRequests(prev, next) {
+    return deepEquals(prev, next);
   }
 }
 
