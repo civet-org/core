@@ -1,12 +1,12 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import deepEquals from 'fast-deep-equal';
+import PropTypes from 'prop-types';
+import React, { Component } from 'react';
 import { v1 as uuid } from 'uuid';
 
+import AbortSignal from './AbortSignal';
 import { ConfigContext, ResourceContext } from './context';
 import { dataStorePropType } from './DataStore';
 import Meta from './Meta';
-import AbortSignal from './AbortSignal';
 
 function getComparator({ name, ids, query, empty, options }) {
   return {
@@ -16,6 +16,11 @@ function getComparator({ name, ids, query, empty, options }) {
     empty,
     options,
   };
+}
+
+function compareRequests(dataStore, prevComparator, nextComparator) {
+  if (dataStore != null) return dataStore.compareRequests(prevComparator, nextComparator);
+  return deepEquals(prevComparator, nextComparator);
 }
 
 function getEmptyValue({ name, ids, query, options, dataStore }, request, revision, empty) {
@@ -43,7 +48,7 @@ class Resource extends Component {
   static getDerivedStateFromProps(nextProps, prevState) {
     const { empty, dataStore: ds, persistent } = nextProps;
     const _ = getComparator(nextProps);
-    if (prevState.ds !== ds || !deepEquals(prevState._, _)) {
+    if (prevState.ds !== ds || !compareRequests(ds, prevState._, _)) {
       const request = uuid();
       const revision = uuid();
       const isEmpty = ds == null || empty;
