@@ -14,12 +14,13 @@ class DefaultDataStore extends BaseDataStore {
   recycleItems(nextData, prevData) {
     const prevMapping = {};
     prevData.forEach((item) => {
-      prevMapping[this.recycleItemsUniqueIdentifier(item)] = item;
+      const id = this.recycleItemsUniqueIdentifier(item);
+      if (id != null) prevMapping[id] = item;
     });
     const result = nextData.map((nextItem) => {
-      const identifier = this.recycleItemsUniqueIdentifier(nextItem);
-      if (Object.prototype.hasOwnProperty.call(prevMapping, identifier)) {
-        const prevItem = prevMapping[identifier];
+      const id = this.recycleItemsUniqueIdentifier(nextItem);
+      if (id != null && Object.prototype.hasOwnProperty.call(prevMapping, id)) {
+        const prevItem = prevMapping[id];
         if (this.recycleItemsIsUnchanged(nextItem, prevItem)) return prevItem;
       }
       return nextItem;
