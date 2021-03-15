@@ -36,6 +36,7 @@ function getEmptyValue({ name, ids, query, options, dataStore }, request, revisi
     error: undefined,
     isEmpty: empty,
     isIncomplete: !empty,
+    isInitial: true,
   };
 }
 
@@ -182,6 +183,7 @@ class Resource extends Component {
           ...emptyValue,
           meta: meta.commit(prevContext.meta),
           isIncomplete: !done,
+          isInitial: currentState.isInitial && !done,
         };
 
         return {
