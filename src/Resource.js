@@ -36,7 +36,7 @@ function getEmptyValue({ name, ids, query, options, dataStore }, request, revisi
     error: undefined,
     isEmpty: empty,
     isIncomplete: !empty,
-    isInitial: true,
+    isInitial: !empty,
   };
 }
 
