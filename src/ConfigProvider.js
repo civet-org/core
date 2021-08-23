@@ -1,6 +1,5 @@
-import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
-
+import React, { useMemo } from 'react';
 import { ConfigContext } from './context';
 import { dataStorePropType } from './DataStore';
 
