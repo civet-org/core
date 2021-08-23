@@ -2,6 +2,7 @@ import deepEquals from 'fast-deep-equal';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { v1 as uuid } from 'uuid';
+
 import AbortSignal from './AbortSignal';
 import { ConfigContext, ResourceContext } from './context';
 import { dataStorePropType } from './DataStore';
