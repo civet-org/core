@@ -1,5 +1,4 @@
 import objectHash from 'object-hash';
-
 import BaseDataStore from './DataStore';
 
 class DefaultDataStore extends BaseDataStore {
