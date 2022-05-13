@@ -8,10 +8,9 @@ import { dataStorePropType } from './DataStore';
 import Meta from './Meta';
 import uniqueIdentifier from './uniqueIdentifier';
 
-function getComparator({ name, ids, query, empty, options }) {
+function getComparator({ name, query, empty, options }) {
   return {
     name,
-    ids,
     query,
     empty,
     options,
@@ -23,10 +22,9 @@ function compareRequests(dataStore, prevComparator, nextComparator) {
   return deepEquals(prevComparator, nextComparator);
 }
 
-function getEmptyValue({ name, ids, query, options, dataStore }, request, revision, empty) {
+function getEmptyValue({ name, query, options, dataStore }, request, revision, empty) {
   return {
     name,
-    ids,
     query,
     options,
     dataStore,
@@ -151,7 +149,7 @@ class Resource extends Component {
 
   fetch(request, revision) {
     const { ...props } = this.props;
-    const { name, ids, query, options, dataStore } = props;
+    const { name, query, options, dataStore } = props;
     const { value } = this.state;
 
     if (this.isUnmounted) {
@@ -202,7 +200,7 @@ class Resource extends Component {
       });
     };
 
-    dataStore.continuousGet(name, ids, query, options, meta, callback, signal);
+    dataStore.continuousGet(name, query, options, meta, callback, signal);
   }
 
   render() {
@@ -239,11 +237,7 @@ Resource.propTypes = {
    */
   name: PropTypes.string.isRequired,
   /**
-   * IDs to be queried (in place of query)
-   */
-  ids: PropTypes.array,
-  /**
-   * Query filter (in place of ids)
+   * Query
    */
   query: PropTypes.any,
   /**
