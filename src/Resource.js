@@ -29,7 +29,7 @@ Resource.propTypes = {
   /**
    * DataProvider to be used for requests
    */
-  dataProvider: dataProviderPropType.isRequired,
+  dataProvider: dataProviderPropType,
   /**
    * Resource name
    */
