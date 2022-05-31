@@ -10,17 +10,15 @@ import uniqueIdentifier from './uniqueIdentifier';
  * If not explicitly specified, necessary configuration is taken from the nearest <ConfigProvider>.
  * The provided DataProvider must not be replaced.
  */
-function useResource(props) {
-  const {
-    name,
-    query,
-    empty,
-    options,
-    dataProvider: dataProviderProp,
-    persistent,
-    ...rest
-  } = props;
-
+function useResource({
+  dataProvider: dataProviderProp,
+  name,
+  query,
+  empty,
+  options,
+  persistent,
+  ...rest
+}) {
   const configContext = useConfigContext();
   const currentDataProvider = dataProviderProp || configContext.dataProvider;
   const dataProvider = React.useMemo(() => currentDataProvider, []);
@@ -199,10 +197,7 @@ function useResource(props) {
     [value, dataProvider, isLoading, isStale, notify],
   );
 
-  const contextPlugins = Array.isArray(dataProvider.contextPlugins)
-    ? dataProvider.contextPlugins
-    : [];
-  return contextPlugins.reduce((result, fn) => fn(result, rest), context);
+  return dataProvider.contextPlugins.reduce((result, fn) => fn(result, rest), context);
 }
 
 export default useResource;
