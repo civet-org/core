@@ -12,14 +12,30 @@ class DataStore {
   notifier = new ChannelNotifier();
 
   constructor() {
-    this.contextPlugins = new Set();
-    this.uiPlugins = new Set();
+    const contextPlugins = [];
+    const uiPlugins = [];
     this.extend({
       context: (plugin) => {
-        this.contextPlugins.add(plugin);
+        const plugins = contextPlugins;
+        if (plugin != null && !plugins.includes(plugin)) plugins.push(plugin);
       },
       ui: (plugin) => {
-        this.uiPlugins.add(plugin);
+        const plugins = uiPlugins;
+        if (plugin != null && !plugins.includes(plugin)) plugins.push(plugin);
+      },
+    });
+    Object.defineProperties(this, {
+      contextPlugins: {
+        value: Object.freeze(contextPlugins.slice()),
+        enumerable: true,
+        writable: false,
+        configurable: false,
+      },
+      uiPlugins: {
+        value: Object.freeze(uiPlugins.slice()),
+        enumerable: true,
+        writable: false,
+        configurable: false,
       },
     });
   }
@@ -48,18 +64,16 @@ class DataStore {
   }
 
   continuousGet(resource, query, options, meta, callback, abortSignal) {
+    const signal = abortSignal == null ? new AbortSignal() : abortSignal;
+
     new Promise((resolve) => {
       if (resource == null) throw new Error('No resource name specified');
-
-      let complete = false;
-      const signal = abortSignal == null ? new AbortSignal() : abortSignal;
 
       // result transformation
       const cb = (error, done, result) => {
         // prevent updates after completion
-        if (complete) return;
+        if (signal.locked) return;
         if (error != null || done) {
-          complete = true;
           signal.lock();
         }
         if (error != null) callback(error, true, []);
@@ -71,14 +85,14 @@ class DataStore {
       resolve(
         Promise.resolve(this.handleGet(resource, query, options, getMeta(meta))).then((result) => {
           if (typeof result === 'function') {
-            result(cb, signal);
+            result(cb, signal.proxy());
           } else {
             cb(undefined, true, result);
           }
         }),
       );
     }).catch((e) => {
-      callback(e, true, []);
+      if (!signal.locked) callback(e, true, []);
     });
   }
 
