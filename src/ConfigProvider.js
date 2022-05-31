@@ -1,20 +1,20 @@
 import PropTypes from 'prop-types';
-import React, { useMemo } from 'react';
+import React from 'react';
 
 import { ConfigContext } from './context';
-import { dataStorePropType } from './DataStore';
+import { dataProviderPropType } from './DataProvider';
 
 /**
  * Provides general configuration to its descendants using React's context API.
  */
-function ConfigProvider({ dataStore, children }) {
-  const context = useMemo(() => ({ dataStore }), [dataStore]);
+function ConfigProvider({ provider, children }) {
+  const context = React.useMemo(() => ({ provider }), [provider]);
 
   return <ConfigContext.Provider value={context}>{children}</ConfigContext.Provider>;
 }
 
 ConfigProvider.propTypes = {
-  dataStore: dataStorePropType,
+  provider: dataProviderPropType,
   children: PropTypes.node,
 };
 

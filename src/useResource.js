@@ -1,0 +1,198 @@
+import React from 'react';
+
+import AbortSignal from './AbortSignal';
+import { useConfigContext } from './context';
+import Meta from './Meta';
+import uniqueIdentifier from './uniqueIdentifier';
+
+/**
+ * Makes data from an DataProvider available.
+ * If not explicitly specified, necessary configuration is taken from the nearest <ConfigProvider>.
+ * The provided DataProvider must not be replaced.
+ */
+function useResource(props) {
+  const { name, query, empty, options, provider: providerProp, persistent, ...rest } = props;
+
+  const configContext = useConfigContext();
+  const currentProvider = providerProp || configContext.provider;
+  const provider = React.useMemo(() => currentProvider, []);
+  if (provider == null) {
+    throw new Error(
+      'Unmet requirement: The DataProvider for the useResource hook is missing - Check your ConfigContext and the provider property',
+    );
+  }
+  if (provider !== currentProvider) {
+    throw new Error(
+      'Constant violation: The DataProvider provided to the useResource hook must not be replaced - Check your ConfigContext and the provider property',
+    );
+  }
+
+  const comparator = { name, query, empty, options };
+  const [state, setState] = React.useState(() => {
+    const request = uniqueIdentifier();
+    const revision = uniqueIdentifier();
+    return {
+      comparator,
+      request,
+      revision,
+      isLoading: !empty,
+      value: {
+        name,
+        query,
+        options,
+        request,
+        revision,
+        data: [],
+        meta: {},
+        error: undefined,
+        isEmpty: empty,
+        isIncomplete: !empty,
+        isInitial: !empty,
+      },
+      persistent,
+    };
+  });
+  const {
+    comparator: prevComparator,
+    request,
+    revision,
+    isLoading,
+    value,
+    persistent: prevPersistent,
+  } = state;
+
+  if (prevComparator !== comparator && !provider.compareRequests(prevComparator, comparator)) {
+    setState((prevState) => {
+      const nextRequest = uniqueIdentifier(prevState.request);
+      const nextRevision = uniqueIdentifier(prevState.revision);
+      let isPersistent;
+      if (
+        prevState.value.meta.persistent === 'very' ||
+        (persistent === 'very' && prevState.persistent === 'very')
+      ) {
+        isPersistent = 'very';
+      } else if (prevState.value.meta.persistent || (persistent && prevState.persistent)) {
+        isPersistent = true;
+      }
+      const shouldValuePersist =
+        !empty &&
+        isPersistent &&
+        (isPersistent === 'very' || prevState.comparator.name === comparator.name);
+      return {
+        comparator,
+        request: nextRequest,
+        revision: nextRevision,
+        isLoading: !empty,
+        value: shouldValuePersist
+          ? prevState.value
+          : {
+              name,
+              query,
+              options,
+              request: nextRequest,
+              revision: nextRevision,
+              data: [],
+              meta: {},
+              error: undefined,
+              isEmpty: empty,
+              isIncomplete: !empty,
+              isInitial: !empty,
+            },
+        persistent,
+      };
+    });
+  } else if (prevPersistent !== persistent) {
+    setState((prevState) => ({ ...prevState, persistent }));
+  }
+
+  const notify = React.useCallback(
+    async () =>
+      new Promise((resolve) => {
+        setState((currentState) => {
+          if (currentState.empty) return currentState;
+          const nextRevision = uniqueIdentifier(currentState.revision);
+          resolve({ request: currentState.request, revision: nextRevision });
+          return { ...currentState, isLoading: true, revision: nextRevision };
+        });
+      }),
+    [],
+  );
+
+  // DataProvider events
+  React.useEffect(() => {
+    if (empty) return undefined;
+
+    const unsubscribe = provider.subscribe(name, notify);
+    return unsubscribe;
+  }, [!empty, provider, name, notify]);
+
+  React.useEffect(() => {
+    if (empty) return undefined;
+
+    const abortSignal = new AbortSignal();
+
+    const meta = new Meta({ ...value.meta });
+
+    const callback = (error, done, data) => {
+      setState((prevState) => {
+        if (request !== prevState.request || revision !== prevState.revision) return prevState;
+
+        if (error != null) {
+          return {
+            ...prevState,
+            isLoading: false,
+            value: {
+              ...prevState.value,
+              error,
+              isIncomplete: false,
+            },
+          };
+        }
+
+        const { data: prevData, ...prevContext } = prevState.value;
+        const context = {
+          name,
+          query,
+          options,
+          request,
+          revision,
+          meta: meta.commit(prevContext.meta),
+          error: undefined,
+          isEmpty: false,
+          isIncomplete: !done,
+          isInitial: prevState.isInitial && !done,
+        };
+
+        return {
+          isLoading: !done,
+          value: {
+            ...context,
+            data: provider.recycleItems(
+              provider.transition(data, prevData, context, prevContext),
+              prevData,
+              context,
+              prevContext,
+            ),
+          },
+        };
+      });
+    };
+
+    provider.continuousGet(name, query, options, meta, callback, abortSignal);
+
+    return () => {
+      abortSignal.abort();
+    };
+  }, [request, revision]);
+
+  const isStale = request !== value.request;
+  const context = React.useMemo(
+    () => ({ ...value, provider, isLoading, isStale, notify }),
+    [value, provider, isLoading, isStale, notify],
+  );
+
+  const contextPlugins = Array.isArray(provider.contextPlugins) ? provider.contextPlugins : [];
+  return contextPlugins.reduce((result, fn) => fn(result, rest), context);
+}
+
+export default useResource;
