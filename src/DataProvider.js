@@ -8,7 +8,7 @@ import Meta from './Meta';
 
 const getMeta = (meta) => (meta instanceof Meta ? meta : new Meta(meta));
 
-class DataStore {
+class DataProvider {
   notifier = new ChannelNotifier();
 
   constructor() {
@@ -174,9 +174,9 @@ class DataStore {
   }
 }
 
-const isDataStore = (dataStore) => dataStore instanceof DataStore;
+const isDataProvider = (provider) => provider instanceof DataProvider;
 
-const dataStorePropType = PropTypes.instanceOf(DataStore);
+const dataProviderPropType = PropTypes.instanceOf(DataProvider);
 
-export default DataStore;
-export { isDataStore, dataStorePropType };
+export default DataProvider;
+export { isDataProvider, dataProviderPropType };

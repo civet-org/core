@@ -6,24 +6,24 @@ import Meta from './Meta';
 import uniqueIdentifier from './uniqueIdentifier';
 
 /**
- * Makes data from an DataStore available.
+ * Makes data from an DataProvider available.
  * If not explicitly specified, necessary configuration is taken from the nearest <ConfigProvider>.
- * The provided DataStore must not be replaced.
+ * The provided DataProvider must not be replaced.
  */
 function useResource(props) {
-  const { name, query, empty, options, dataStore: dataStoreProp, persistent, ...rest } = props;
+  const { name, query, empty, options, provider: providerProp, persistent, ...rest } = props;
 
   const configContext = useConfigContext();
-  const currentDataStore = dataStoreProp || configContext.dataStore;
-  const dataStore = React.useMemo(() => currentDataStore, []);
-  if (dataStore == null) {
+  const currentProvider = providerProp || configContext.provider;
+  const provider = React.useMemo(() => currentProvider, []);
+  if (provider == null) {
     throw new Error(
-      'Unmet requirement: The DataStore in the useResource hook is missing. Check your ConfigContext provider and the dataStore property.',
+      'Unmet requirement: The DataProvider for the useResource hook is missing - Check your ConfigContext and the provider property',
     );
   }
-  if (dataStore !== currentDataStore) {
+  if (provider !== currentProvider) {
     throw new Error(
-      'Constant violation: The DataStore provided to the useResource hook must not be replaced. Check your ConfigContext provider and the dataStore property.',
+      'Constant violation: The DataProvider provided to the useResource hook must not be replaced - Check your ConfigContext and the provider property',
     );
   }
 
@@ -40,7 +40,6 @@ function useResource(props) {
         name,
         query,
         options,
-        dataStore,
         request,
         revision,
         data: [],
@@ -62,7 +61,7 @@ function useResource(props) {
     persistent: prevPersistent,
   } = state;
 
-  if (prevComparator !== comparator && !dataStore.compareRequests(prevComparator, comparator)) {
+  if (prevComparator !== comparator && !provider.compareRequests(prevComparator, comparator)) {
     setState((prevState) => {
       const nextRequest = uniqueIdentifier(prevState.request);
       const nextRevision = uniqueIdentifier(prevState.revision);
@@ -119,13 +118,13 @@ function useResource(props) {
     [],
   );
 
-  // DataStore events
+  // DataProvider events
   React.useEffect(() => {
     if (empty) return undefined;
 
-    const unsubscribe = dataStore.subscribe(name, notify);
+    const unsubscribe = provider.subscribe(name, notify);
     return unsubscribe;
-  }, [!empty, dataStore, name, notify]);
+  }, [!empty, provider, name, notify]);
 
   React.useEffect(() => {
     if (empty) return undefined;
@@ -168,8 +167,8 @@ function useResource(props) {
           isLoading: !done,
           value: {
             ...context,
-            data: dataStore.recycleItems(
-              dataStore.transition(data, prevData, context, prevContext),
+            data: provider.recycleItems(
+              provider.transition(data, prevData, context, prevContext),
               prevData,
               context,
               prevContext,
@@ -179,7 +178,7 @@ function useResource(props) {
       });
     };
 
-    dataStore.continuousGet(name, query, options, meta, callback, abortSignal);
+    provider.continuousGet(name, query, options, meta, callback, abortSignal);
 
     return () => {
       abortSignal.abort();
@@ -188,11 +187,11 @@ function useResource(props) {
 
   const isStale = request !== value.request;
   const context = React.useMemo(
-    () => ({ ...value, isLoading, isStale, notify }),
-    [value, isLoading, isStale, notify],
+    () => ({ ...value, provider, isLoading, isStale, notify }),
+    [value, provider, isLoading, isStale, notify],
   );
 
-  const contextPlugins = Array.isArray(dataStore.contextPlugins) ? dataStore.contextPlugins : [];
+  const contextPlugins = Array.isArray(provider.contextPlugins) ? provider.contextPlugins : [];
   return contextPlugins.reduce((result, fn) => fn(result, rest), context);
 }
 

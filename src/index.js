@@ -7,7 +7,7 @@ export { default as ChannelNotifier } from './ChannelNotifier';
 export { default as compose } from './compose';
 export { default as ConfigProvider } from './ConfigProvider';
 export { default as createPlugin } from './createPlugin';
-export { dataStorePropType, default as DataStore, isDataStore } from './DataStore';
+export { dataProviderPropType, default as DataProvider, isDataProvider } from './DataProvider';
 export { default as Meta } from './Meta';
 export { default as Notifier } from './Notifier';
 export { default as Resource } from './Resource';
