@@ -36,9 +36,9 @@ Resource.propTypes = {
   /**
    * DataProvider to be used for requests
    */
-  provider: dataProviderPropType.isRequired,
+  dataProvider: dataProviderPropType.isRequired,
   /**
-   * Whether stale data should be retained during the next request - this only applies if neither provider nor name have changed, unless set to "very"
+   * Whether stale data should be retained during the next request - this only applies if neither dataProvider nor name have changed, unless set to "very"
    */
   persistent: PropTypes.oneOfType([PropTypes.bool, PropTypes.oneOf(['very'])]),
   children: PropTypes.node,
