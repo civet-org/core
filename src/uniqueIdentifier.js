@@ -3,7 +3,7 @@ import { v1 as uuid } from 'uuid';
 /**
  * Returns incrementing unique string identifiers.
  * Uniqueness is guaranteed for <Number.MAX_SAFE_INTEGER> iterations.
- * The values can be compared alphanumerically, as long as they do not exceed the previously specified iterations.
+ * The values can be compared alphanumerically, as long as they do not exceed the previously specified number of iterations.
  *
  * @param {string?} previous Previous identifier
  */
