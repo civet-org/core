@@ -12,11 +12,11 @@ import uniqueIdentifier from './uniqueIdentifier';
  */
 function useResource({
   dataProvider: dataProviderProp,
-  name,
-  query,
-  empty,
-  options,
-  persistent,
+  name: nextName,
+  query: nextQuery,
+  empty: nextEmpty,
+  options: nextOptions,
+  persistent: nextPersistent,
   ...rest
 }) {
   const configContext = useConfigContext();
@@ -33,82 +33,82 @@ function useResource({
     );
   }
 
-  const comparator = { name, query, empty, options };
+  const nextRequestDetails = React.useMemo(
+    () => ({ name: nextName, query: nextQuery, empty: nextEmpty, options: nextOptions }),
+    [nextName, nextQuery, nextEmpty, nextOptions],
+  );
   const [state, setState] = React.useState(() => {
     const request = uniqueIdentifier();
     const revision = uniqueIdentifier();
     return {
-      comparator,
+      requestDetails: nextRequestDetails,
       request,
       revision,
-      isLoading: !empty,
+      isLoading: !nextRequestDetails.empty,
       value: {
-        name,
-        query,
-        options,
+        name: nextRequestDetails.name,
+        query: nextRequestDetails.query,
+        options: nextRequestDetails.options,
         request,
         revision,
         data: [],
         meta: {},
         error: undefined,
-        isEmpty: !!empty,
-        isIncomplete: !empty,
-        isInitial: !empty,
+        isEmpty: !!nextRequestDetails.empty,
+        isIncomplete: !nextRequestDetails.empty,
+        isInitial: !nextRequestDetails.empty,
       },
-      persistent,
+      persistent: nextPersistent,
     };
   });
-  const {
-    comparator: prevComparator,
-    request,
-    revision,
-    isLoading,
-    value,
-    persistent: prevPersistent,
-  } = state;
+  const { requestDetails, request, revision, isLoading, value, persistent } = state;
 
-  if (prevComparator !== comparator && !dataProvider.compareRequests(prevComparator, comparator)) {
+  if (
+    requestDetails !== nextRequestDetails &&
+    !dataProvider.compareRequests(nextRequestDetails, requestDetails)
+  ) {
     setState((prevState) => {
       const nextRequest = uniqueIdentifier(prevState.request);
       const nextRevision = uniqueIdentifier(prevState.revision);
-      let isPersistent;
-      if (
-        prevState.value.meta.persistent === 'very' ||
-        (persistent === 'very' && prevState.persistent === 'very')
-      ) {
+      let isPersistent = false;
+      if (prevState.persistent === 'very' && nextPersistent === 'very') {
         isPersistent = 'very';
-      } else if (prevState.value.meta.persistent || (persistent && prevState.persistent)) {
+      } else if (prevState.persistent && nextPersistent) {
         isPersistent = true;
       }
       const shouldValuePersist =
-        !empty &&
-        isPersistent &&
-        (isPersistent === 'very' || prevState.comparator.name === comparator.name);
+        !nextRequestDetails.empty &&
+        dataProvider.shouldPersist(
+          nextRequestDetails,
+          prevState.requestDetails,
+          isPersistent,
+          prevState.value,
+        );
       return {
-        comparator,
+        requestDetails: nextRequestDetails,
         request: nextRequest,
         revision: nextRevision,
-        isLoading: !empty,
+        isLoading: !nextRequestDetails.empty,
         value: shouldValuePersist
           ? prevState.value
           : {
-              name,
-              query,
-              options,
+              name: nextRequestDetails.name,
+              query: nextRequestDetails.query,
+              options: nextRequestDetails.options,
               request: nextRequest,
               revision: nextRevision,
               data: [],
               meta: {},
               error: undefined,
-              isEmpty: !!empty,
-              isIncomplete: !empty,
-              isInitial: !empty,
+              isEmpty: !!nextRequestDetails.empty,
+              isIncomplete: !nextRequestDetails.empty,
+              isInitial: !nextRequestDetails.empty,
             },
-        persistent,
+        persistent: nextPersistent,
       };
     });
-  } else if (prevPersistent !== persistent) {
-    setState((prevState) => ({ ...prevState, persistent }));
+  } else if (persistent !== nextPersistent) {
+    setState((prevState) => ({ ...prevState, persistent: nextPersistent }));
   }
 
   const notify = React.useCallback(
@@ -126,14 +126,14 @@ function useResource({
 
   // DataProvider events
   React.useEffect(() => {
-    if (empty) return undefined;
+    if (requestDetails.empty) return undefined;
 
-    const unsubscribe = dataProvider.subscribe(name, notify);
+    const unsubscribe = dataProvider.subscribe(requestDetails.name, notify);
     return unsubscribe;
-  }, [!empty, dataProvider, name, notify]);
+  }, [requestDetails.empty, dataProvider, requestDetails.name, notify]);
 
   React.useEffect(() => {
-    if (empty) return undefined;
+    if (requestDetails.empty) return undefined;
 
     const abortSignal = new AbortSignal();
 
@@ -155,37 +155,38 @@ function useResource({
           };
         }
 
-        const { data: prevData, ...prevContext } = prevState.value;
         const context = {
-          name,
-          query,
-          options,
+          name: requestDetails.name,
+          query: requestDetails.query,
+          options: requestDetails.options,
           request,
           revision,
-          meta: meta.commit(prevContext.meta),
+          data,
+          meta: meta.commit(prevState.value.meta),
           error: undefined,
           isEmpty: false,
           isIncomplete: !done,
           isInitial: !!prevState.isInitial && !done,
         };
+        context.data = dataProvider.transition(context, prevState.value);
+        context.data = dataProvider.recycleItems(context, prevState.value);
 
         return {
           ...prevState,
           isLoading: !done,
-          value: {
-            ...context,
-            data: dataProvider.recycleItems(
-              dataProvider.transition(data, prevData, context, prevContext),
-              prevData,
-              context,
-              prevContext,
-            ),
-          },
+          value: context,
         };
       });
     };
 
-    dataProvider.continuousGet(name, query, options, meta, callback, abortSignal);
+    dataProvider.continuousGet(
+      requestDetails.name,
+      requestDetails.query,
+      requestDetails.options,
+      meta,
+      callback,
+      abortSignal,
+    );
 
     return () => {
       abortSignal.abort();
