@@ -127,8 +127,14 @@ class DataProvider {
     });
   }
 
-  compareRequests(prev, next) {
-    return deepEquals(prev, next);
+  compareRequests(nextRequestDetails, prevRequestDetails) {
+    return deepEquals(nextRequestDetails, prevRequestDetails);
+  }
+
+  shouldPersist(nextRequestDetails, prevRequestDetails, persistent) {
+    return (
+      persistent === 'very' || (persistent && prevRequestDetails.name === nextRequestDetails.name)
+    );
   }
 
   compareItemVersions() {
@@ -139,21 +145,21 @@ class DataProvider {
     return objectHash(item);
   }
 
-  transition(nextData) {
-    return nextData;
+  transition(nextContext) {
+    return nextContext.data;
   }
 
-  recycleItems(nextData, prevData) {
+  recycleItems(nextContext, prevContext) {
     const prevMapping = {};
-    if (nextData.length > 0) {
-      prevData.forEach((item) => {
+    if (nextContext.data.length > 0) {
+      prevContext.data.forEach((item) => {
         const id = this.getItemIdentifier(item);
         if (id != null) prevMapping[id] = item;
       });
     }
     let result;
-    if (prevData.length > 0) {
-      result = nextData.map((nextItem) => {
+    if (prevContext.data.length > 0) {
+      result = nextContext.data.map((nextItem) => {
         const id = this.getItemIdentifier(nextItem);
         if (id != null && Object.prototype.hasOwnProperty.call(prevMapping, id)) {
           const prevItem = prevMapping[id];
@@ -162,13 +168,13 @@ class DataProvider {
         return nextItem;
       });
     } else {
-      result = nextData;
+      result = nextContext.data;
     }
     if (
-      prevData.length === result.length &&
-      result.reduce((sum, item, i) => sum && Object.is(prevData[i], item), true)
+      prevContext.data.length === result.length &&
+      result.reduce((sum, item, i) => sum && Object.is(prevContext.data[i], item), true)
     ) {
-      return prevData;
+      return prevContext.data;
     }
     return result;
   }
