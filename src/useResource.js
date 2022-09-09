@@ -21,7 +21,7 @@ function useResource({
 }) {
   const configContext = useConfigContext();
   const currentDataProvider = dataProviderProp || configContext.dataProvider;
-  const dataProvider = React.useMemo(() => currentDataProvider, []);
+  const [dataProvider] = React.useState(currentDataProvider);
   if (dataProvider == null) {
     throw new Error(
       'Unmet requirement: The DataProvider for the useResource hook is missing - Check your ConfigContext provider and the dataProvider property',
@@ -32,6 +32,14 @@ function useResource({
       'Constant violation: The DataProvider provided to the useResource hook must not be replaced - Check your ConfigContext provider and the dataProvider property',
     );
   }
+
+  const [instance] = React.useState(() => dataProvider.createInstance());
+  React.useEffect(
+    () => () => {
+      dataProvider.releaseInstance(instance);
+    },
+    [],
+  );
 
   const nextRequestDetails = React.useMemo(
     () => ({ name: nextName, query: nextQuery, empty: nextEmpty, options: nextOptions }),
@@ -137,7 +145,7 @@ function useResource({
 
     const abortSignal = new AbortSignal();
 
-    const meta = new Meta({ ...value.meta });
+    const meta = new Meta({ ...value.meta }, instance);
 
     const callback = (error, done, data) => {
       setState((prevState) => {
