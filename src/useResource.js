@@ -147,43 +147,59 @@ function useResource({
 
     const meta = new Meta({ ...value.meta }, instance);
 
+    let promise = Promise.resolve(state);
+
     const callback = (error, done, data) => {
-      setState((prevState) => {
-        if (request !== prevState.request || revision !== prevState.revision) return prevState;
+      promise = promise.then((prevState) => {
+        try {
+          let nextState;
 
-        if (error != null) {
-          return {
-            ...prevState,
-            isLoading: false,
-            value: {
-              ...prevState.value,
-              error,
-              isIncomplete: false,
-            },
-          };
+          if (error != null) {
+            nextState = {
+              ...prevState,
+              isLoading: false,
+              value: {
+                ...prevState.value,
+                error,
+                isIncomplete: false,
+              },
+            };
+          } else {
+            const context = {
+              name: requestDetails.name,
+              query: requestDetails.query,
+              options: requestDetails.options,
+              request,
+              revision,
+              data,
+              meta: meta.commit(prevState.value.meta),
+              error: undefined,
+              isEmpty: false,
+              isIncomplete: !done,
+              isInitial: !!prevState.isInitial && !done,
+            };
+            context.data = dataProvider.transition(context, prevState.value);
+            context.data = dataProvider.recycleItems(context, prevState.value);
+
+            nextState = {
+              ...prevState,
+              isLoading: !done,
+              value: context,
+            };
+          }
+
+          setState((otherState) => {
+            if (request !== otherState.request || revision !== otherState.revision) {
+              return otherState;
+            }
+
+            return nextState;
+          });
+
+          return nextState;
+        } catch {
+          return prevState;
         }
-
-        const context = {
-          name: requestDetails.name,
-          query: requestDetails.query,
-          options: requestDetails.options,
-          request,
-          revision,
-          data,
-          meta: meta.commit(prevState.value.meta),
-          error: undefined,
-          isEmpty: false,
-          isIncomplete: !done,
-          isInitial: !!prevState.isInitial && !done,
-        };
-        context.data = dataProvider.transition(context, prevState.value);
-        context.data = dataProvider.recycleItems(context, prevState.value);
-
-        return {
-          ...prevState,
-          isLoading: !done,
-          value: context,
-        };
       });
     };
 
