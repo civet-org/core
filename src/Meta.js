@@ -4,43 +4,33 @@ class Meta {
     this.instance = instance;
   }
 
-  clear() {
+  clear = () => {
     Object.keys(this.data).forEach((key) => {
       delete this.data[key];
     });
-  }
+  };
 
-  delete(key) {
+  delete = (key) => {
     const value = this.data[key];
     delete this.data[key];
     return value;
-  }
+  };
 
-  entries() {
-    return Object.entries(this.data);
-  }
+  entries = () => Object.entries(this.data);
 
-  get(key) {
-    return this.data[key];
-  }
+  get = (key) => this.data[key];
 
-  has(key) {
-    return Object.prototype.hasOwnProperty.call(this.data, key);
-  }
+  has = (key) => Object.prototype.hasOwnProperty.call(this.data, key);
 
-  keys() {
-    return Object.keys(this.data);
-  }
+  keys = () => Object.keys(this.data);
 
-  set(key, value) {
+  set = (key, value) => {
     this.data[key] = value;
-  }
+  };
 
-  values() {
-    return Object.values(this.data);
-  }
+  values = () => Object.values(this.data);
 
-  commit(prev, ignore) {
+  commit = (prev, ignore) => {
     const next = { ...this.data };
     (ignore || []).forEach((item) => {
       delete next[item];
@@ -54,7 +44,7 @@ class Meta {
       return prev;
     }
     return next;
-  }
+  };
 }
 
 export default Meta;
