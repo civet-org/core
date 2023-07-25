@@ -1,6 +1,6 @@
 {
   "name": "@civet/core",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Civet",
   "main": "./lib/index.js",
   "scripts": {

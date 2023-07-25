@@ -1,20 +1,18 @@
 class Notifier {
-  subscriptions = [];
+  listeners = new Set();
 
   subscribe = (handler) => {
     if (typeof handler !== 'function') throw new Error('Handler must be a function');
-    if (!this.isSubscribed(handler)) {
-      this.subscriptions.push(handler);
-    }
+    this.listeners.add(handler);
     return () => {
-      this.subscriptions = this.subscriptions.filter((item) => item !== handler);
+      this.listeners.delete(handler);
     };
   };
 
-  isSubscribed = (handler) => this.subscriptions.includes(handler);
+  isSubscribed = (handler) => this.listeners.has(handler);
 
   trigger = (...args) => {
-    this.subscriptions.forEach((handler) => handler(...args));
+    this.listeners.forEach((handler) => handler(...args));
   };
 }
 
