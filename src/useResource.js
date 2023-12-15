@@ -36,7 +36,7 @@ function useResource({
   const [instance, setInstance] = React.useState();
   React.useEffect(() => {
     const i = dataProvider.createInstance();
-    setInstance(i);
+    setInstance(i ?? {});
     return () => {
       dataProvider.releaseInstance(i);
     };
