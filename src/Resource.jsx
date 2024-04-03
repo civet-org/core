@@ -1,8 +1,6 @@
 import PropTypes from 'prop-types';
-import React from 'react';
-
-import { ResourceContext } from './context';
 import { dataProviderPropType } from './DataProvider';
+import { ResourceContext } from './context';
 import useResource from './useResource';
 
 const propTypes = {
@@ -30,9 +28,9 @@ function Resource({ dataProvider, name, query, empty, options, persistent, child
   const context = useResource({ dataProvider, name, query, empty, options, persistent, ...rest });
 
   return context.dataProvider.uiPlugins.reduceRight(
-    (next, Plugin) => (result) =>
-      (
-        // eslint-disable-next-line react/jsx-props-no-spreading
+    (next, Plugin) =>
+      // eslint-disable-next-line react/display-name
+      (result) => (
         <Plugin {...rest} context={result}>
           {next}
         </Plugin>
