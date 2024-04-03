@@ -27,7 +27,7 @@ const propTypes = {
  * The provided DataProvider must not be replaced.
  */
 function Resource({ dataProvider, name, query, empty, options, persistent, children, ...rest }) {
-  const context = useResource({ dataProvider, name, query, empty, options, persistent });
+  const context = useResource({ dataProvider, name, query, empty, options, persistent, ...rest });
 
   return context.dataProvider.uiPlugins.reduceRight(
     (next, Plugin) => (result) =>
