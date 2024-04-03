@@ -1,7 +1,6 @@
 import deepEquals from 'fast-deep-equal';
 import objectHash from 'object-hash';
 import PropTypes from 'prop-types';
-
 import AbortSignal from './AbortSignal';
 import ChannelNotifier from './ChannelNotifier';
 import Meta from './Meta';
@@ -191,4 +190,4 @@ const isDataProvider = (dataProvider) => dataProvider instanceof DataProvider;
 const dataProviderPropType = PropTypes.instanceOf(DataProvider);
 
 export default DataProvider;
-export { isDataProvider, dataProviderPropType };
+export { dataProviderPropType, isDataProvider };
