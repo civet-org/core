@@ -4,25 +4,28 @@ import { ResourceContext } from './context';
 import useResource from './useResource';
 
 const propTypes = {
-  /** DataProvider to be used for requests */
+  /** DataProvider to be used for requests - must not be changed */
   dataProvider: dataProviderPropType,
   /** Resource name */
   name: PropTypes.string.isRequired,
-  /** Query */
+  /** Query instructions */
   query: PropTypes.any,
-  /** Whether to prevent fetching data */
+  /** Disables fetching data, resulting in an empty data array */
   empty: PropTypes.bool,
-  /** DataProvider options for requests */
+  /** Query options for requests */
   options: PropTypes.object,
-  /** Whether stale data should be retained during the next request - this only applies if neither dataProvider nor name have changed, unless set to "very" */
+  /** Whether stale data should be retained during the next request - this only applies if name did not change, unless set to "very" */
   persistent: PropTypes.oneOfType([PropTypes.bool, PropTypes.oneOf(['very'])]),
   children: PropTypes.node,
 };
 
 /**
- * Makes data from an DataProvider available to its descendants using React's context API.
- * If not explicitly specified, necessary configuration is taken from the nearest <ConfigProvider>.
- * The provided DataProvider must not be replaced.
+ * Provides data based on the given request details and DataProvider.
+ * Context provider for the ResourceContext.
+ *
+ * Necessary configuration that is not directly specified is taken from the ConfigContext.
+ *
+ * The provided DataProvider must not be changed.
  */
 function Resource({ dataProvider, name, query, empty, options, persistent, children, ...rest }) {
   const context = useResource({ dataProvider, name, query, empty, options, persistent, ...rest });
