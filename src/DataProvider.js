@@ -94,14 +94,18 @@ class DataProvider {
         else callback(undefined, done, [result]);
       };
 
+      const proxy = signal.proxy();
+
       resolve(
-        Promise.resolve(this.handleGet(resource, query, options, getMeta(meta))).then((result) => {
-          if (typeof result === 'function') {
-            result(cb, signal.proxy());
-          } else {
-            cb(undefined, true, result);
-          }
-        }),
+        Promise.resolve(this.handleGet(resource, query, options, getMeta(meta), proxy)).then(
+          (result) => {
+            if (typeof result === 'function') {
+              result(cb, proxy);
+            } else {
+              cb(undefined, true, result);
+            }
+          },
+        ),
       );
     }).catch((e) => {
       if (!signal.locked) callback(e, true, []);
