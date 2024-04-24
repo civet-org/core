@@ -30,16 +30,6 @@ module.exports = {
     'no-unused-vars': ['error', { ignoreRestSiblings: true }],
     'no-use-before-define': 'error',
     'arrow-body-style': 'error',
-    'no-restricted-imports': [
-      'error',
-      'lodash', // do not use lodash
-      'lodash.debounce',
-      'lodash.get',
-      'lodash.groupby',
-      'lodash.intersection',
-      'lodash.set',
-      'react-router', // use react-router-dom instead
-    ],
     'unused-imports/no-unused-imports': 'error',
     'import/no-unresolved': 'error',
     'import/no-duplicates': 'error',
