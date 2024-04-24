@@ -100,6 +100,7 @@ class DataProvider {
         Promise.resolve(this.handleGet(resource, query, options, getMeta(meta), proxy)).then(
           (result) => {
             if (typeof result === 'function') {
+              // `proxy` is being passed down here for backwards compatibility
               result(cb, proxy);
             } else {
               cb(undefined, true, result);
