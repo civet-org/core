@@ -5,9 +5,7 @@ import { ConfigContext } from './context';
 import { dataStorePropType } from './DataStore';
 
 const ConfigProvider = ({ dataStore, children }) => (
-  <ConfigContext.Provider value={{ dataStore }}>
-    {children}
-  </ConfigContext.Provider>
+  <ConfigContext.Provider value={{ dataStore }}>{children}</ConfigContext.Provider>
 );
 
 ConfigProvider.propTypes = {

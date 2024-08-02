@@ -1,6 +1,4 @@
 import React from 'react';
 
-const ConfigContext = React.createContext({});
-const ResourceContext = React.createContext({});
-
-export { ConfigContext, ResourceContext };
+export const ConfigContext = React.createContext({});
+export const ResourceContext = React.createContext({});
