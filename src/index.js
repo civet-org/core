@@ -11,4 +11,5 @@ export { dataProviderPropType, default as DataProvider, isDataProvider } from '.
 export { default as Meta } from './Meta';
 export { default as Notifier } from './Notifier';
 export { default as Resource } from './Resource';
+export { default as useResource } from './useResource';
 export { useConfigContext, useResourceContext };
