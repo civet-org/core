@@ -48,7 +48,7 @@ class Resource extends Component {
         ds,
         request,
         revision,
-        activeFetches: isEmpty ? 0 : 1,
+        isLoading: !isEmpty,
         persistent,
       };
       if (
@@ -80,7 +80,7 @@ class Resource extends Component {
       ds,
       request,
       revision,
-      activeFetches: isEmpty ? 0 : 1,
+      isLoading: !isEmpty,
       value: getEmptyValue(props, request, revision, isEmpty),
       persistent,
     };
@@ -125,7 +125,7 @@ class Resource extends Component {
     this.setState(currentState => {
       if (request !== currentState.request) return null;
       return {
-        activeFetches: Math.min(currentState.activeFetches + 1, Number.MAX_SAFE_INTEGER),
+        isLoading: true,
         revision: uuid(),
       };
     });
@@ -146,11 +146,10 @@ class Resource extends Component {
       if (this.isUnmounted) return;
       this.setState(currentState => {
         if (request !== currentState.request || revision !== currentState.revision) return null;
-        let { activeFetches } = currentState;
-        if (error != null || done) activeFetches = Math.max(currentState.activeFetches - 1, 0);
+
         if (error != null) {
           return {
-            activeFetches,
+            isLoading: false,
             value: {
               ...currentState.value,
               error,
@@ -168,7 +167,7 @@ class Resource extends Component {
         };
 
         return {
-          activeFetches,
+          isLoading: !done,
           value: {
             ...context,
             data: dataStore.recycleItems(
@@ -187,11 +186,11 @@ class Resource extends Component {
 
   render() {
     const { children } = this.props;
-    const { request, activeFetches, value } = this.state;
+    const { request, isLoading, value } = this.state;
     if (value.dataStore == null) return null;
     const context = {
       ...value,
-      isLoading: activeFetches > 0,
+      isLoading,
       isStale: request !== value.request,
       notify: this.handleNotify,
     };
