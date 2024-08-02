@@ -1,7 +1,5 @@
 class Notifier {
-  constructor() {
-    this.subscriptions = [];
-  }
+  subscriptions = [];
 
   subscribe(handler) {
     if (typeof handler !== 'function') throw new Error('Handler must be a function');
@@ -17,8 +15,8 @@ class Notifier {
     return this.subscriptions.includes(handler);
   }
 
-  trigger() {
-    this.subscriptions.forEach((handler) => handler());
+  trigger(...args) {
+    this.subscriptions.forEach((handler) => handler(...args));
   }
 }
 
