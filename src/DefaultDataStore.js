@@ -26,7 +26,7 @@ class DefaultDataStore extends BaseDataStore {
     });
     if (
       prevData.length === result.length &&
-      result.reduce((sum, item, i) => sum && prevData[i] === item, true)
+      result.reduce((sum, item, i) => sum && Object.is(prevData[i], item), true)
     ) {
       return prevData;
     }
