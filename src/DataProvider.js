@@ -56,15 +56,22 @@ class DataProvider {
     this.notifier.trigger(resource);
   }
 
-  get(resource, query, options, meta) {
+  get(resource, query, options, meta, abortSignal) {
     return new Promise((resolve, reject) =>
-      this.continuousGet(resource, query, options, meta, (error, done, result) => {
-        if (error != null) {
-          reject(error);
-          return;
-        }
-        if (done) resolve(result);
-      }),
+      this.continuousGet(
+        resource,
+        query,
+        options,
+        meta,
+        (error, done, result) => {
+          if (error != null) {
+            reject(error);
+            return;
+          }
+          if (done) resolve(result);
+        },
+        abortSignal,
+      ),
     );
   }
 
