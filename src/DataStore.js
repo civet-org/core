@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import deepEquals from 'fast-deep-equal';
 
+import AbortSignal from './AbortSignal';
 import Meta from './Meta';
 import Notifier from './Notifier';
 
@@ -26,21 +27,55 @@ class DataStore {
   }
 
   get(resource, ids, query, options, meta) {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) =>
+      this.continuousGet(resource, ids, query, options, meta, (error, done, result) => {
+        if (error != null) {
+          reject(error);
+          return;
+        }
+        if (done) resolve(result);
+      }),
+    );
+  }
+
+  continuousGet(resource, ids, query, options, meta, callback, abortSignal) {
+    new Promise(resolve => {
       if (resource == null) throw new Error('No resource specified');
       if (ids != null) {
         if (!Array.isArray(ids)) throw new Error('IDs must be an array');
         if (query != null) throw new Error("IDs and query aren't allowed at the same time");
       }
+
+      let complete = false;
+      const signal = abortSignal == null ? new AbortSignal() : abortSignal;
+
+      // result transformation
+      const cb = (error, done, result) => {
+        // prevent updates after completion
+        if (complete) return;
+        if (error != null || done) {
+          complete = true;
+          signal.lock();
+        }
+        if (error != null) callback(error, true, []);
+        else if (result == null) callback(undefined, done, []);
+        else if (Array.isArray(result)) callback(undefined, done, result);
+        else callback(undefined, done, [result]);
+      };
+
       resolve(
         Promise.resolve(this.handleGet(resource, ids, query, options, getMeta(meta))).then(
           result => {
-            if (result == null) return [];
-            if (Array.isArray(result)) return result;
-            return [result];
+            if (typeof result === 'function') {
+              result(cb, signal);
+            } else {
+              cb(undefined, true, result);
+            }
           },
         ),
       );
+    }).catch(e => {
+      callback(e, true, []);
     });
   }
 
