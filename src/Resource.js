@@ -1,12 +1,12 @@
 import deepEquals from 'fast-deep-equal';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { v1 as uuid } from 'uuid';
 
 import AbortSignal from './AbortSignal';
 import { ConfigContext, ResourceContext } from './context';
 import { dataStorePropType } from './DataStore';
 import Meta from './Meta';
+import uniqueIdentifier from './uniqueIdentifier';
 
 function getComparator({ name, ids, query, empty, options }) {
   return {
@@ -50,8 +50,8 @@ class Resource extends Component {
     const { empty, dataStore: ds, persistent } = nextProps;
     const _ = getComparator(nextProps);
     if (prevState.ds !== ds || !compareRequests(ds, prevState._, _)) {
-      const request = uuid();
-      const revision = uuid();
+      const request = uniqueIdentifier(prevState.request);
+      const revision = uniqueIdentifier(prevState.revision);
       const isEmpty = ds == null || empty;
       const nextState = {
         _,
@@ -90,8 +90,8 @@ class Resource extends Component {
   constructor(props) {
     super(props);
     const { empty, dataStore: ds, persistent } = props;
-    const request = uuid();
-    const revision = uuid();
+    const request = uniqueIdentifier();
+    const revision = uniqueIdentifier();
     const isEmpty = ds == null || empty;
     this.state = {
       _: getComparator(props),
@@ -136,18 +136,18 @@ class Resource extends Component {
     if (this.abortSignal) this.abortSignal.abort();
   }
 
-  notify = () => {
-    const { empty, dataStore } = this.props;
-    const { request } = this.state;
-    if (dataStore == null || empty) return;
-    this.setState((currentState) => {
-      if (request !== currentState.request) return null;
-      return {
-        isLoading: true,
-        revision: uuid(),
-      };
+  notify = async () =>
+    new Promise((resolve) => {
+      this.setState((currentState) => {
+        if (currentState.ds == null || currentState.empty) return null;
+        const nextRevision = uniqueIdentifier(currentState.revision);
+        resolve({ request: currentState.request, revision: nextRevision });
+        return {
+          isLoading: true,
+          revision: nextRevision,
+        };
+      });
     });
-  };
 
   fetch(request, revision) {
     const { ...props } = this.props;
