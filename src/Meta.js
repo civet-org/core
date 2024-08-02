@@ -39,8 +39,11 @@ class Meta {
     return Object.values(this.data);
   }
 
-  commit(prev) {
+  commit(prev, ignore) {
     const next = { ...this.data };
+    (ignore || []).forEach((item) => {
+      delete next[item];
+    });
     const keys = Object.keys(next);
     if (
       prev != null &&
