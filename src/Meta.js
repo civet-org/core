@@ -1,6 +1,7 @@
 class Meta {
-  constructor(base) {
+  constructor(base, instance) {
     this.data = base == null ? {} : base;
+    this.instance = instance;
   }
 
   clear() {
