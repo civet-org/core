@@ -42,6 +42,12 @@ class DataProvider {
 
   extend() {}
 
+  createInstance() {
+    return null;
+  }
+
+  releaseInstance() {}
+
   subscribe(resource, handler) {
     if (resource == null) throw new Error('No resource name specified');
     return this.notifier.subscribe(resource, handler);
