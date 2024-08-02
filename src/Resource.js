@@ -97,7 +97,7 @@ class Resource extends Component {
     if (this.unsubscribe) this.unsubscribe();
   }
 
-  handleNotify() {
+  handleNotify = () => {
     const { empty, dataStore } = this.props;
     const { request } = this.state;
     if (dataStore == null || empty) return;
@@ -110,7 +110,7 @@ class Resource extends Component {
       },
       () => this.fetch(request),
     );
-  }
+  };
 
   fetch(request) {
     const { ...props } = this.props;
@@ -156,7 +156,7 @@ class Resource extends Component {
       ...value,
       isLoading: activeFetches > 0,
       isStale: request !== value.request,
-      notify: () => this.handleNotify(),
+      notify: this.handleNotify,
     };
     return <ResourceContext.Provider value={context}>{children}</ResourceContext.Provider>;
   }
