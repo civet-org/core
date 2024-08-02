@@ -32,7 +32,7 @@
   "bugs": {
     "url": "https://github.com/civet-org/core/issues"
   },
-  "homepage": "https://civet.hatsu.moe/",
+  "homepage": "https://civet.js.org/",
   "devDependencies": {
     "@babel/cli": "7.1.5",
     "@babel/core": "7.1.6",
