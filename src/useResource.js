@@ -1,8 +1,8 @@
 import React from 'react';
 
 import AbortSignal from './AbortSignal';
-import { useConfigContext } from './context';
 import Meta from './Meta';
+import { useConfigContext } from './context';
 import uniqueIdentifier from './uniqueIdentifier';
 
 /**
@@ -33,13 +33,14 @@ function useResource({
     );
   }
 
-  const [instance] = React.useState(() => dataProvider.createInstance());
-  React.useEffect(
-    () => () => {
-      dataProvider.releaseInstance(instance);
-    },
-    [],
-  );
+  const [instance, setInstance] = React.useState();
+  React.useEffect(() => {
+    const i = dataProvider.createInstance();
+    setInstance(i);
+    return () => {
+      dataProvider.releaseInstance(i);
+    };
+  }, []);
 
   const nextRequestDetails = React.useMemo(
     () => ({ name: nextName, query: nextQuery, empty: nextEmpty, options: nextOptions }),
@@ -123,7 +124,6 @@ function useResource({
     async () =>
       new Promise((resolve) => {
         setState((currentState) => {
-          if (currentState.empty) return currentState;
           const nextRevision = uniqueIdentifier(currentState.revision);
           resolve({ request: currentState.request, revision: nextRevision });
           return { ...currentState, isLoading: true, revision: nextRevision };
@@ -141,7 +141,7 @@ function useResource({
   }, [requestDetails.empty, dataProvider, requestDetails.name, notify]);
 
   React.useEffect(() => {
-    if (requestDetails.empty) return undefined;
+    if (requestDetails.empty || instance == null) return undefined;
 
     const abortSignal = new AbortSignal();
 
@@ -215,7 +215,7 @@ function useResource({
     return () => {
       abortSignal.abort();
     };
-  }, [request, revision]);
+  }, [instance, request, revision]);
 
   const isStale = revision !== value.revision;
   const next = React.useMemo(
