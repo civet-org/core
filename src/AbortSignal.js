@@ -52,8 +52,8 @@ class AbortSignal {
   proxy() {
     const s = this;
     return {
-      get notifier() {
-        return s.notifier;
+      listen(cb) {
+        return s.listen(cb);
       },
       get locked() {
         return s.locked;
