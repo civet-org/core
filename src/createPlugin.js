@@ -4,7 +4,6 @@ function createPlugin(plugin) {
   if (typeof plugin !== 'function') throw new Error('No valid plugin definition specified');
   return (dataProviderClass) => {
     if (!Object.prototype.isPrototypeOf.call(DataProvider, dataProviderClass)) {
-      // eslint-disable-next-line no-console
       console.error(
         'A plugin should be given a derivative of the DataProvider class as its first parameter',
       );
