@@ -141,7 +141,7 @@ class Resource extends Component {
             activeFetches,
             value: {
               ...getEmptyValue(props, request),
-              data: nextState.data,
+              data: dataStore.recycleItems(nextState.data, currentState.value.data),
             },
           };
         });
