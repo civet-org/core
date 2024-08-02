@@ -6,7 +6,7 @@ class Meta {
   }
 
   clear() {
-    Object.keys(this.data).forEach(key => {
+    Object.keys(this.data).forEach((key) => {
       delete this.data[key];
     });
   }

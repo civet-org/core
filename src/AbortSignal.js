@@ -15,7 +15,7 @@ class AbortSignal {
     if (this.locked) return;
     this.locked = true;
     this.aborted = true;
-    this.listeners.forEach(cb => cb());
+    this.listeners.forEach((cb) => cb());
   }
 
   lock() {

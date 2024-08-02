@@ -7,12 +7,12 @@ class Notifier {
     if (typeof handler !== 'function') throw new Error('Handler must be a function');
     this.subscriptions.push(handler);
     return () => {
-      this.subscriptions = this.subscriptions.filter(item => item !== handler);
+      this.subscriptions = this.subscriptions.filter((item) => item !== handler);
     };
   }
 
   trigger() {
-    this.subscriptions.forEach(handler => handler());
+    this.subscriptions.forEach((handler) => handler());
   }
 }
 

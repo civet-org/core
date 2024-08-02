@@ -8,28 +8,32 @@ import { dataStorePropType } from './DataStore';
 import Meta from './Meta';
 import AbortSignal from './AbortSignal';
 
-const getComparator = ({ name, ids, query, empty, options }) => ({
-  name,
-  ids,
-  query,
-  empty,
-  options,
-});
+function getComparator({ name, ids, query, empty, options }) {
+  return {
+    name,
+    ids,
+    query,
+    empty,
+    options,
+  };
+}
 
-const getEmptyValue = ({ name, ids, query, options, dataStore }, request, revision, empty) => ({
-  name,
-  ids,
-  query,
-  options,
-  dataStore,
-  request,
-  revision,
-  data: [],
-  meta: {},
-  error: undefined,
-  isEmpty: empty,
-  isIncomplete: !empty,
-});
+function getEmptyValue({ name, ids, query, options, dataStore }, request, revision, empty) {
+  return {
+    name,
+    ids,
+    query,
+    options,
+    dataStore,
+    request,
+    revision,
+    data: [],
+    meta: {},
+    error: undefined,
+    isEmpty: empty,
+    isIncomplete: !empty,
+  };
+}
 
 /**
  * Makes data from an DataStore available to its descendants using React's context API.
@@ -122,7 +126,7 @@ class Resource extends Component {
     const { empty, dataStore } = this.props;
     const { request } = this.state;
     if (dataStore == null || empty) return;
-    this.setState(currentState => {
+    this.setState((currentState) => {
       if (request !== currentState.request) return null;
       return {
         isLoading: true,
@@ -144,7 +148,7 @@ class Resource extends Component {
 
     const callback = (error, done, data) => {
       if (this.isUnmounted) return;
-      this.setState(currentState => {
+      this.setState((currentState) => {
         if (request !== currentState.request || revision !== currentState.revision) return null;
 
         if (error != null) {
@@ -230,13 +234,15 @@ Resource.propTypes = {
   children: PropTypes.node,
 };
 
-const withContext = ChildComponent => {
-  const WithContext = props => (
+/* eslint-disable react/jsx-props-no-spreading */
+const withContext = (ChildComponent) => {
+  const WithContext = (props) => (
     <ConfigContext.Consumer>
       {({ dataStore }) => <ChildComponent dataStore={dataStore} {...props} />}
     </ConfigContext.Consumer>
   );
   return WithContext;
 };
+/* eslint-enable react/jsx-props-no-spreading */
 
 export default withContext(Resource);
