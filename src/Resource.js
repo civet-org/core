@@ -86,7 +86,7 @@ class Resource extends Component {
       if (this.unsubscribe) this.unsubscribe();
       this.unsubscribe = undefined;
       if (dataStore == null || empty) return;
-      this.unsubscribe = this.props.dataStore.subscribe(name, () => this.handleNotify());
+      this.unsubscribe = dataStore.subscribe(name, () => this.handleNotify());
     }
     if (prevState.request !== request && !empty) {
       this.fetch(request);
