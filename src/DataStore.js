@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import deepEquals from 'fast-deep-equal';
 
 import AbortSignal from './AbortSignal';
 import Meta from './Meta';
@@ -130,23 +129,8 @@ class DataStore {
     return nextData;
   }
 
-  recycleItems(nextData, prevData) {
-    const prevItems = [...prevData];
-    const result = nextData.map(nextItem => {
-      const i = prevItems.findIndex(item => deepEquals(item, nextItem));
-      if (i >= 0) {
-        const [prevItem] = prevItems.splice(i, 1);
-        return prevItem;
-      }
-      return nextItem;
-    });
-    if (
-      prevData.length === result.length &&
-      result.reduce((sum, item, i) => sum && prevData[i] === item, true)
-    ) {
-      return prevData;
-    }
-    return result;
+  recycleItems(nextData) {
+    return nextData;
   }
 }
 
