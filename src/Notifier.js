@@ -5,10 +5,16 @@ class Notifier {
 
   subscribe(handler) {
     if (typeof handler !== 'function') throw new Error('Handler must be a function');
-    this.subscriptions.push(handler);
+    if (!this.isSubscribed(handler)) {
+      this.subscriptions.push(handler);
+    }
     return () => {
       this.subscriptions = this.subscriptions.filter((item) => item !== handler);
     };
+  }
+
+  isSubscribed(handler) {
+    return this.subscriptions.includes(handler);
   }
 
   trigger() {

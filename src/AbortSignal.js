@@ -1,21 +1,24 @@
+import Notifier from './Notifier';
+
 class AbortSignal {
   constructor() {
+    this.notifier = new Notifier();
     this.locked = false;
     this.aborted = false;
-    this.listeners = [];
   }
 
   listen(cb) {
-    if (typeof cb !== 'function' || this.listeners.includes(cb)) return;
-    this.listeners.push(cb);
-    if (this.aborted) cb();
+    const alreadySubscribed = this.notifier.isSubscribed(cb);
+    const unsubscribe = this.notifier.subscribe(cb);
+    if (this.aborted && !alreadySubscribed) cb();
+    return unsubscribe;
   }
 
   abort() {
     if (this.locked) return;
     this.locked = true;
     this.aborted = true;
-    this.listeners.forEach((cb) => cb());
+    this.notifier.trigger();
   }
 
   lock() {
