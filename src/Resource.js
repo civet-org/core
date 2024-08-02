@@ -2,13 +2,13 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import { ResourceContext } from './context';
-import { dataStorePropType } from './DataStore';
+import { dataProviderPropType } from './DataProvider';
 import useResource from './useResource';
 
 /**
- * Makes data from an DataStore available to its descendants using React's context API.
+ * Makes data from an DataProvider available to its descendants using React's context API.
  * If not explicitly specified, necessary configuration is taken from the nearest <ConfigProvider>.
- * The provided DataStore must not be replaced.
+ * The provided DataProvider must not be replaced.
  */
 function Resource({ children, ...props }) {
   const context = useResource(props);
@@ -30,15 +30,15 @@ Resource.propTypes = {
    */
   empty: PropTypes.bool,
   /**
-   * DataStore options for requests
+   * DataProvider options for requests
    */
   options: PropTypes.object,
   /**
-   * DataStore to be used for requests
+   * DataProvider to be used for requests
    */
-  dataStore: dataStorePropType.isRequired,
+  provider: dataProviderPropType.isRequired,
   /**
-   * Whether stale data should be retained during the next request - this only applies if neither dataStore nor name have changed, unless set to "very"
+   * Whether stale data should be retained during the next request - this only applies if neither provider nor name have changed, unless set to "very"
    */
   persistent: PropTypes.oneOfType([PropTypes.bool, PropTypes.oneOf(['very'])]),
   children: PropTypes.node,
