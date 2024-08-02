@@ -9,6 +9,19 @@ const getMeta = (meta) => (meta instanceof Meta ? meta : new Meta(meta));
 class DataStore {
   notifier = new ChannelNotifier();
 
+  constructor() {
+    this.resourcePlugins = [];
+    this.extend({
+      resource: (plugin) => {
+        if (!this.resourcePlugins.includes(plugin)) {
+          this.resourcePlugins.push(plugin);
+        }
+      },
+    });
+  }
+
+  extend() {}
+
   subscribe(resource, handler) {
     if (resource == null) throw new Error('No resource specified');
     return this.notifier.subscribe(resource, handler);

@@ -9,24 +9,11 @@ function createPlugin(plugin) {
         'A plugin should be given a derivative of the DataStore class as its first parameter',
       );
     }
-    let result = class extends dataStoreClass {};
-    const resourcePlugins = [];
-    const extend = {
-      resource: (Plugin) => {
-        if (Plugin != null) resourcePlugins.push(Plugin);
-      },
-    };
-    const output = plugin(result, extend);
-    if (output != null) {
-      result = output;
-    }
-    if (resourcePlugins.length > 0) {
-      result.prototype.resourcePlugins = [
-        ...(Array.isArray(result.prototype.resourcePlugins)
-          ? result.prototype.resourcePlugins
-          : []),
-        ...resourcePlugins,
-      ];
+    const result = plugin(class extends dataStoreClass {});
+    if (result == null) {
+      throw new Error(
+        'A plugin is expected to return a derivative of the DataStore class but returned nothing',
+      );
     }
     return result;
   };
