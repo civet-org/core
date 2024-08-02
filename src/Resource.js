@@ -1,8 +1,7 @@
 import deepEquals from 'fast-deep-equal';
 import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { v1 as uuid } from 'uuid';
-
 import AbortSignal from './AbortSignal';
 import { ConfigContext, ResourceContext } from './context';
 import { dataStorePropType } from './DataStore';
@@ -44,7 +43,7 @@ function getEmptyValue({ name, ids, query, options, dataStore }, request, revisi
  * Makes data from an DataStore available to its descendants using React's context API.
  * If not explicitly specified, necessary configuration is taken from the nearest <ConfigProvider>.
  */
-class Resource extends Component {
+class Resource extends PureComponent {
   static getDerivedStateFromProps(nextProps, prevState) {
     const { empty, dataStore: ds, persistent } = nextProps;
     const _ = getComparator(nextProps);
