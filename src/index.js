@@ -1,7 +1,8 @@
-import { ConfigContext, ResourceContext } from './context';
+import { ConfigContext, useConfigContext, ResourceContext, useResourceContext } from './context';
 
 export const { Consumer: ConfigConsumer } = ConfigContext;
 export const { Provider: ResourceProvider, Consumer: ResourceConsumer } = ResourceContext;
+export { useConfigContext, useResourceContext };
 
 export { default as ConfigProvider } from './ConfigProvider';
 export { default as Resource } from './Resource';
