@@ -160,16 +160,24 @@ function fetchData(requestInstruction, instance, abortSignal, dispatch) {
 }
 
 /**
- * Makes data from a DataProvider available.
- * If not explicitly specified, necessary configuration is taken from the nearest <ConfigProvider>.
- * The provided DataProvider must not be replaced.
+ * Provides data based on the given request details and DataProvider.
+ *
+ * Necessary configuration that is not directly specified is taken from the ConfigContext.
+ *
+ * The provided DataProvider must not be changed.
  */
 function useResource({
+  /** DataProvider to be used for requests - must not be changed */
   dataProvider: dataProviderProp,
+  /** Resource name */
   name: nextName,
+  /** Query instructions */
   query: nextQuery,
+  /** Disables fetching data, resulting in an empty data array */
   empty: nextEmpty,
+  /** Query options for requests */
   options: nextOptions,
+  /** Whether stale data should be retained during the next request - this only applies if name did not change, unless set to "very" */
   persistent: nextPersistent,
   ...rest
 }) {
