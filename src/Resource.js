@@ -60,13 +60,21 @@ class Resource extends Component {
         isLoading: !isEmpty,
         persistent,
       };
+      let isPersistent;
+      if (
+        prevState.value.meta.persistent === 'very' ||
+        (persistent === 'very' && prevState.persistent === 'very')
+      ) {
+        isPersistent = 'very';
+      } else if (prevState.value.meta.persistent || (persistent && prevState.persistent)) {
+        isPersistent = true;
+      }
       if (
         prevState.ds == null ||
+        prevState.ds !== ds ||
         isEmpty ||
-        !persistent ||
-        !prevState.persistent ||
-        ((persistent !== 'very' || prevState.persistent !== 'very') &&
-          (prevState.ds !== ds || prevState._.name !== _.name))
+        !isPersistent ||
+        (isPersistent !== 'very' && prevState._.name !== _.name)
       ) {
         nextState.value = getEmptyValue(nextProps, request, revision, isEmpty);
       }
@@ -143,11 +151,13 @@ class Resource extends Component {
   fetch(request, revision) {
     const { ...props } = this.props;
     const { name, ids, query, options, dataStore } = props;
+    const { value } = this.state;
+
     if (this.isUnmounted) {
       return;
     }
 
-    const meta = new Meta();
+    const meta = new Meta({ ...value.meta });
     const signal = new AbortSignal();
     this.abortSignal = signal;
 
