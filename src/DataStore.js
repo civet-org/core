@@ -1,5 +1,6 @@
 import deepEquals from 'fast-deep-equal';
 import PropTypes from 'prop-types';
+
 import AbortSignal from './AbortSignal';
 import ChannelNotifier from './ChannelNotifier';
 import Meta from './Meta';
