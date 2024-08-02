@@ -4,6 +4,9 @@ import PropTypes from 'prop-types';
 import { ConfigContext } from './context';
 import { dataStorePropType } from './DataStore';
 
+/**
+ * The <ConfigProvider> context provider is used to provide shared configuration to underlying <Resource> components.
+ */
 const ConfigProvider = ({ dataStore, children }) => (
   <ConfigContext.Provider value={{ dataStore }}>{children}</ConfigContext.Provider>
 );

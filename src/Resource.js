@@ -26,6 +26,11 @@ const getEmptyValue = ({ name, ids, query, empty, options, dataStore }, request)
   isEmpty: Boolean(empty),
 });
 
+/**
+ * The <Resource> context provider is used to provide data and corresponding status information to underlying components.
+ * Configuration is taken from the nearest higher-level <ConfigProvider> if not individually specified.
+ */
+
 class Resource extends Component {
   static getDerivedStateFromProps(nextProps, prevState) {
     const { empty, dataStore: ds, persistent } = nextProps;
@@ -158,12 +163,33 @@ class Resource extends Component {
 }
 
 Resource.propTypes = {
+  /**
+   * The resource’s name
+   */
   name: PropTypes.string.isRequired,
+  /**
+   * The IDs used to fetch the data (instead of query)
+   */
   ids: PropTypes.array,
+  /**
+   * The query used to fetch the data (instead of ids). See https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html
+   */
   query: PropTypes.any,
+  /**
+   * Whether there should be no data fetched
+   */
   empty: PropTypes.bool,
+  /**
+   * Whether there should be no data fetched
+   */
   options: PropTypes.object,
+  /**
+   * DataStore implementation.
+   */
   dataStore: dataStorePropType.isRequired,
+  /**
+   * Whether stale data should be preserved while fetching the next request - this will only apply if neither dataStore nor name have changed, except when set to “very”
+   */
   persistent: PropTypes.oneOfType([PropTypes.bool, PropTypes.oneOf(['very'])]),
   children: PropTypes.node,
 };
