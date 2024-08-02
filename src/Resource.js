@@ -5,6 +5,22 @@ import { ResourceContext } from './context';
 import { dataProviderPropType } from './DataProvider';
 import useResource from './useResource';
 
+const propTypes = {
+  /** DataProvider to be used for requests */
+  dataProvider: dataProviderPropType,
+  /** Resource name */
+  name: PropTypes.string.isRequired,
+  /** Query */
+  query: PropTypes.any,
+  /** Whether to prevent fetching data */
+  empty: PropTypes.bool,
+  /** DataProvider options for requests */
+  options: PropTypes.object,
+  /** Whether stale data should be retained during the next request - this only applies if neither dataProvider nor name have changed, unless set to "very" */
+  persistent: PropTypes.oneOfType([PropTypes.bool, PropTypes.oneOf(['very'])]),
+  children: PropTypes.node,
+};
+
 /**
  * Makes data from an DataProvider available to its descendants using React's context API.
  * If not explicitly specified, necessary configuration is taken from the nearest <ConfigProvider>.
@@ -25,32 +41,6 @@ function Resource({ dataProvider, name, query, empty, options, persistent, child
   )(context);
 }
 
-Resource.propTypes = {
-  /**
-   * DataProvider to be used for requests
-   */
-  dataProvider: dataProviderPropType,
-  /**
-   * Resource name
-   */
-  name: PropTypes.string.isRequired,
-  /**
-   * Query
-   */
-  query: PropTypes.any,
-  /**
-   * Whether to prevent fetching data
-   */
-  empty: PropTypes.bool,
-  /**
-   * DataProvider options for requests
-   */
-  options: PropTypes.object,
-  /**
-   * Whether stale data should be retained during the next request - this only applies if neither dataProvider nor name have changed, unless set to "very"
-   */
-  persistent: PropTypes.oneOfType([PropTypes.bool, PropTypes.oneOf(['very'])]),
-  children: PropTypes.node,
-};
+Resource.propTypes = propTypes;
 
 export default Resource;

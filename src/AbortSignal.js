@@ -19,15 +19,15 @@ class AbortSignal {
     });
   }
 
-  listen(cb) {
+  listen = (cb) => {
     if (this.locked) return () => {};
     const alreadySubscribed = this.notifier.isSubscribed(cb);
     const unsubscribe = this.notifier.subscribe(cb);
     if (this.aborted && !alreadySubscribed) cb();
     return unsubscribe;
-  }
+  };
 
-  abort() {
+  abort = () => {
     if (this.locked) return;
     this.lock();
     Object.defineProperty(this, 'aborted', {
@@ -37,9 +37,9 @@ class AbortSignal {
       configurable: false,
     });
     this.notifier.trigger();
-  }
+  };
 
-  lock() {
+  lock = () => {
     if (this.locked) return;
     Object.defineProperty(this, 'locked', {
       value: true,
@@ -47,9 +47,9 @@ class AbortSignal {
       writable: false,
       configurable: false,
     });
-  }
+  };
 
-  proxy() {
+  proxy = () => {
     const s = this;
     return {
       listen(cb) {
@@ -62,7 +62,7 @@ class AbortSignal {
         return s.locked;
       },
     };
-  }
+  };
 }
 
 export default AbortSignal;
