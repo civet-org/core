@@ -11,19 +11,27 @@ import uniqueIdentifier from './uniqueIdentifier';
  * The provided DataProvider must not be replaced.
  */
 function useResource(props) {
-  const { name, query, empty, options, provider: providerProp, persistent, ...rest } = props;
+  const {
+    name,
+    query,
+    empty,
+    options,
+    dataProvider: dataProviderProp,
+    persistent,
+    ...rest
+  } = props;
 
   const configContext = useConfigContext();
-  const currentProvider = providerProp || configContext.provider;
-  const provider = React.useMemo(() => currentProvider, []);
-  if (provider == null) {
+  const currentDataProvider = dataProviderProp || configContext.dataProvider;
+  const dataProvider = React.useMemo(() => currentDataProvider, []);
+  if (dataProvider == null) {
     throw new Error(
-      'Unmet requirement: The DataProvider for the useResource hook is missing - Check your ConfigContext and the provider property',
+      'Unmet requirement: The DataProvider for the useResource hook is missing - Check your ConfigContext provider and the dataProvider property',
     );
   }
-  if (provider !== currentProvider) {
+  if (dataProvider !== currentDataProvider) {
     throw new Error(
-      'Constant violation: The DataProvider provided to the useResource hook must not be replaced - Check your ConfigContext and the provider property',
+      'Constant violation: The DataProvider provided to the useResource hook must not be replaced - Check your ConfigContext provider and the dataProvider property',
     );
   }
 
@@ -61,7 +69,7 @@ function useResource(props) {
     persistent: prevPersistent,
   } = state;
 
-  if (prevComparator !== comparator && !provider.compareRequests(prevComparator, comparator)) {
+  if (prevComparator !== comparator && !dataProvider.compareRequests(prevComparator, comparator)) {
     setState((prevState) => {
       const nextRequest = uniqueIdentifier(prevState.request);
       const nextRevision = uniqueIdentifier(prevState.revision);
@@ -122,9 +130,9 @@ function useResource(props) {
   React.useEffect(() => {
     if (empty) return undefined;
 
-    const unsubscribe = provider.subscribe(name, notify);
+    const unsubscribe = dataProvider.subscribe(name, notify);
     return unsubscribe;
-  }, [!empty, provider, name, notify]);
+  }, [!empty, dataProvider, name, notify]);
 
   React.useEffect(() => {
     if (empty) return undefined;
@@ -167,8 +175,8 @@ function useResource(props) {
           isLoading: !done,
           value: {
             ...context,
-            data: provider.recycleItems(
-              provider.transition(data, prevData, context, prevContext),
+            data: dataProvider.recycleItems(
+              dataProvider.transition(data, prevData, context, prevContext),
               prevData,
               context,
               prevContext,
@@ -178,7 +186,7 @@ function useResource(props) {
       });
     };
 
-    provider.continuousGet(name, query, options, meta, callback, abortSignal);
+    dataProvider.continuousGet(name, query, options, meta, callback, abortSignal);
 
     return () => {
       abortSignal.abort();
@@ -187,11 +195,13 @@ function useResource(props) {
 
   const isStale = request !== value.request;
   const context = React.useMemo(
-    () => ({ ...value, provider, isLoading, isStale, notify }),
-    [value, provider, isLoading, isStale, notify],
+    () => ({ ...value, dataProvider, isLoading, isStale, notify }),
+    [value, dataProvider, isLoading, isStale, notify],
   );
 
-  const contextPlugins = Array.isArray(provider.contextPlugins) ? provider.contextPlugins : [];
+  const contextPlugins = Array.isArray(dataProvider.contextPlugins)
+    ? dataProvider.contextPlugins
+    : [];
   return contextPlugins.reduce((result, fn) => fn(result, rest), context);
 }
 

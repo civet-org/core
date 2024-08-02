@@ -174,7 +174,7 @@ class DataProvider {
   }
 }
 
-const isDataProvider = (provider) => provider instanceof DataProvider;
+const isDataProvider = (dataProvider) => dataProvider instanceof DataProvider;
 
 const dataProviderPropType = PropTypes.instanceOf(DataProvider);
 

@@ -7,14 +7,14 @@ import { dataProviderPropType } from './DataProvider';
 /**
  * Provides general configuration to its descendants using React's context API.
  */
-function ConfigProvider({ provider, children }) {
-  const context = React.useMemo(() => ({ provider }), [provider]);
+function ConfigProvider({ dataProvider, children }) {
+  const context = React.useMemo(() => ({ dataProvider }), [dataProvider]);
 
   return <ConfigContext.Provider value={context}>{children}</ConfigContext.Provider>;
 }
 
 ConfigProvider.propTypes = {
-  provider: dataProviderPropType,
+  dataProvider: dataProviderPropType,
   children: PropTypes.node,
 };
 
