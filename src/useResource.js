@@ -166,7 +166,7 @@ function useResource({
           error: undefined,
           isEmpty: false,
           isIncomplete: !done,
-          isInitial: prevState.isInitial && !done,
+          isInitial: !!prevState.isInitial && !done,
         };
 
         return {
@@ -192,10 +192,14 @@ function useResource({
     };
   }, [request, revision]);
 
-  const isStale = request !== value.request;
+  const isStale = revision !== value.revision;
+  const next = React.useMemo(
+    () => (isStale ? { request, revision } : { request: value.request, revision: value.revision }),
+    [isStale, request, revision, value.request, value.revision],
+  );
   const context = React.useMemo(
-    () => ({ ...value, dataProvider, isLoading, isStale, notify }),
-    [value, dataProvider, isLoading, isStale, notify],
+    () => ({ ...value, dataProvider, isLoading, isStale, next, notify }),
+    [value, dataProvider, isLoading, isStale, next, notify],
   );
 
   return dataProvider.contextPlugins.reduce((result, fn) => fn(result, rest), context);
