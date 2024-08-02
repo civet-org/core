@@ -1,7 +1,10 @@
 import PropTypes from 'prop-types';
 import deepEquals from 'fast-deep-equal';
 
+import Meta from './Meta';
 import Notifier from './Notifier';
+
+const getMeta = meta => (meta instanceof Meta ? meta : new Meta(meta));
 
 class DataStore {
   constructor() {
@@ -9,8 +12,8 @@ class DataStore {
   }
 
   subscribe(resource, handler) {
-    if (!resource) throw new Error('No resource specified');
-    if (!this.subscriptions[resource]) this.subscriptions[resource] = new Notifier();
+    if (resource == null) throw new Error('No resource specified');
+    if (this.subscriptions[resource] == null) this.subscriptions[resource] = new Notifier();
     return this.subscriptions[resource].subscribe(handler);
   }
 
@@ -22,63 +25,69 @@ class DataStore {
     }
   }
 
-  get(resource, ids, query, options) {
+  get(resource, ids, query, options, meta) {
     return new Promise(resolve => {
-      if (!resource) throw new Error('No resource specified');
+      if (resource == null) throw new Error('No resource specified');
       if (ids != null) {
         if (!Array.isArray(ids)) throw new Error('IDs must be an array');
         if (query != null) throw new Error("IDs and query aren't allowed at the same time");
       }
       resolve(
-        Promise.resolve(this.handleGet(resource, ids, query, options)).then(result => {
-          if (result == null) return [];
-          if (Array.isArray(result)) return result;
-          return [result];
-        }),
+        Promise.resolve(this.handleGet(resource, ids, query, options, getMeta(meta))).then(
+          result => {
+            if (result == null) return [];
+            if (Array.isArray(result)) return result;
+            return [result];
+          },
+        ),
       );
     });
   }
 
-  create(resource, data, options) {
+  create(resource, data, options, meta) {
     return new Promise(resolve => {
-      if (!resource) throw new Error('No resource specified');
-      if (!data) throw new Error('No data specified');
-      resolve(Promise.resolve(this.handleCreate(resource, data, options)));
+      if (resource == null) throw new Error('No resource specified');
+      if (data == null) throw new Error('No data specified');
+      resolve(Promise.resolve(this.handleCreate(resource, data, options, getMeta(meta))));
     });
   }
 
-  update(resource, ids, query, data, options) {
+  update(resource, ids, query, data, options, meta) {
     return new Promise(resolve => {
-      if (!resource) throw new Error('No resource specified');
+      if (resource == null) throw new Error('No resource specified');
       if (ids != null) {
         if (!Array.isArray(ids)) throw new Error('IDs must be an array');
         if (query != null) throw new Error("IDs and query aren't allowed at the same time");
       }
-      if (!data) throw new Error('No data specified');
-      resolve(Promise.resolve(this.handleUpdate(resource, ids, query, data, options)));
+      if (data == null) throw new Error('No data specified');
+      resolve(
+        Promise.resolve(this.handleUpdate(resource, ids, query, data, options, getMeta(meta))),
+      );
     });
   }
 
-  patch(resource, ids, query, data, options) {
+  patch(resource, ids, query, data, options, meta) {
     return new Promise(resolve => {
-      if (!resource) throw new Error('No resource specified');
+      if (resource == null) throw new Error('No resource specified');
       if (ids != null) {
         if (!Array.isArray(ids)) throw new Error('IDs must be an array');
         if (query != null) throw new Error("IDs and query aren't allowed at the same time");
       }
-      if (!data) throw new Error('No data specified');
-      resolve(Promise.resolve(this.handlePatch(resource, ids, query, data, options)));
+      if (data == null) throw new Error('No data specified');
+      resolve(
+        Promise.resolve(this.handlePatch(resource, ids, query, data, options, getMeta(meta))),
+      );
     });
   }
 
-  remove(resource, ids, query, options) {
+  remove(resource, ids, query, options, meta) {
     return new Promise(resolve => {
-      if (!resource) throw new Error('No resource specified');
+      if (resource == null) throw new Error('No resource specified');
       if (ids != null) {
         if (!Array.isArray(ids)) throw new Error('IDs must be an array');
         if (query != null) throw new Error("IDs and query aren't allowed at the same time");
       }
-      resolve(Promise.resolve(this.handleRemove(resource, ids, query, options)));
+      resolve(Promise.resolve(this.handleRemove(resource, ids, query, options, getMeta(meta))));
     });
   }
 
