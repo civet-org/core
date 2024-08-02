@@ -170,6 +170,7 @@ function useResource({
         };
 
         return {
+          ...prevState,
           isLoading: !done,
           value: {
             ...context,
