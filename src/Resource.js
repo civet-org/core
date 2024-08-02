@@ -10,13 +10,26 @@ import useResource from './useResource';
  * If not explicitly specified, necessary configuration is taken from the nearest <ConfigProvider>.
  * The provided DataProvider must not be replaced.
  */
-function Resource({ children, ...props }) {
-  const context = useResource(props);
+function Resource({ dataProvider, name, query, empty, options, persistent, children, ...rest }) {
+  const context = useResource({ dataProvider, name, query, empty, options, persistent });
 
-  return <ResourceContext.Provider value={context}>{children}</ResourceContext.Provider>;
+  return context.dataProvider.uiPlugins.reduceRight(
+    (next, Plugin) => (result) =>
+      (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <Plugin {...rest} context={result}>
+          {next}
+        </Plugin>
+      ),
+    (result) => <ResourceContext.Provider value={result}>{children}</ResourceContext.Provider>,
+  )(context);
 }
 
 Resource.propTypes = {
+  /**
+   * DataProvider to be used for requests
+   */
+  dataProvider: dataProviderPropType.isRequired,
   /**
    * Resource name
    */
@@ -33,10 +46,6 @@ Resource.propTypes = {
    * DataProvider options for requests
    */
   options: PropTypes.object,
-  /**
-   * DataProvider to be used for requests
-   */
-  dataProvider: dataProviderPropType.isRequired,
   /**
    * Whether stale data should be retained during the next request - this only applies if neither dataProvider nor name have changed, unless set to "very"
    */

@@ -1,6 +1,6 @@
 {
   "name": "@civet/core",
-  "version": "1.0.0-rc2",
+  "version": "1.0.0-rc3",
   "description": "Civet",
   "main": "./lib/index.js",
   "scripts": {
@@ -51,9 +51,9 @@
     "eslint-plugin-prettier": "^3.4.1",
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-react-hooks": "^4.2.0",
-    "prettier": "^2.3.2",
-    "react": "*",
-    "react-dom": "*",
+    "prettier": "^2.6.2",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
     "rimraf": "^3.0.2"
   },
   "peerDependencies": {
