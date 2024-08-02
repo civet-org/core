@@ -43,7 +43,7 @@ class Meta {
 
   commit(prev) {
     if (prev != null && deepEquals(prev, this.data)) return prev;
-    return { ...this.data };
+    return JSON.parse(JSON.stringify(prev));
   }
 }
 
