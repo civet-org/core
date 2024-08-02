@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import deepEquals from 'fast-deep-equal';
-import uuid from 'uuid/v1';
+import { v1 as uuid } from 'uuid';
 
 import { ConfigContext, ResourceContext } from './context';
 import { dataStorePropType } from './DataStore';
