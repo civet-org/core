@@ -49,23 +49,29 @@ class Resource extends Component {
         request,
         revision,
         activeFetches: isEmpty ? 0 : 1,
+        persistent,
       };
       if (
         prevState.ds == null ||
         isEmpty ||
         !persistent ||
-        (persistent !== 'very' && (prevState.ds !== ds || prevState._.name !== _.name))
+        !prevState.persistent ||
+        ((persistent !== 'very' || prevState.persistent !== 'very') &&
+          (prevState.ds !== ds || prevState._.name !== _.name))
       ) {
         nextState.value = getEmptyValue(nextProps, request, revision, isEmpty);
       }
       return nextState;
+    }
+    if (prevState.persistent !== persistent) {
+      return { persistent };
     }
     return null;
   }
 
   constructor(props) {
     super(props);
-    const { empty, dataStore: ds } = props;
+    const { empty, dataStore: ds, persistent } = props;
     const request = uuid();
     const revision = uuid();
     const isEmpty = ds == null || empty;
@@ -76,6 +82,7 @@ class Resource extends Component {
       revision,
       activeFetches: isEmpty ? 0 : 1,
       value: getEmptyValue(props, request, revision, isEmpty),
+      persistent,
     };
   }
 
@@ -153,8 +160,9 @@ class Resource extends Component {
         }
 
         const { data: prevData, ...prevContext } = currentState.value;
+        const { data: emptyData, ...emptyValue } = getEmptyValue(props, request, revision, false);
         const context = {
-          ...getEmptyValue(props, request, revision, false),
+          ...emptyValue,
           meta: meta.commit(prevContext.meta),
           isIncomplete: !done,
         };
