@@ -1,6 +1,6 @@
 {
   "name": "@civet/core",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Civet",
   "type": "module",
   "main": "./lib/index.js",
