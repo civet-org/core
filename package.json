@@ -3,18 +3,17 @@
   "version": "1.4.2",
   "description": "Civet",
   "type": "module",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "lib/",
+    "src/"
+  ],
   "main": "./lib/index.js",
   "exports": {
-    ".": {
-      "import": "./src/index.js",
-      "require": "./lib/index.js",
-      "default": "./lib/index.js"
-    }
+    "import": "./src/index.js",
+    "default": "./lib/index.js"
   },
-  "files": [
-    "lib",
-    "src"
-  ],
   "scripts": {
     "prebuild": "npm run build:clean",
     "build:clean": "rimraf ./lib",
@@ -60,8 +59,7 @@
     "@civet/core": "^1.4.1",
     "cross-env": "^7.0.3",
     "eslint": "^9.20.0",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-react": "^7.37.4",
