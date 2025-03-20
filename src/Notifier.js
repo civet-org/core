@@ -2,7 +2,9 @@ class Notifier {
   listeners = new Set();
 
   subscribe = (handler) => {
-    if (typeof handler !== 'function') throw new Error('Handler must be a function');
+    if (typeof handler !== 'function') {
+      throw new Error('Handler must be a function');
+    }
     this.listeners.add(handler);
     return () => {
       this.listeners.delete(handler);

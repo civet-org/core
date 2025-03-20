@@ -1,11 +1,21 @@
-import { ConfigContext, ResourceContext, useConfigContext, useResourceContext } from './context';
+import {
+  ConfigContext,
+  ResourceContext,
+  useConfigContext,
+  useResourceContext,
+} from './context';
 
 export const { Consumer: ConfigConsumer } = ConfigContext;
-export const { Provider: ResourceProvider, Consumer: ResourceConsumer } = ResourceContext;
+export const { Provider: ResourceProvider, Consumer: ResourceConsumer } =
+  ResourceContext;
 export { default as AbortSignal } from './AbortSignal';
 export { default as ChannelNotifier } from './ChannelNotifier';
 export { default as ConfigProvider } from './ConfigProvider';
-export { default as DataProvider, dataProviderPropType, isDataProvider } from './DataProvider';
+export {
+  default as DataProvider,
+  dataProviderPropType,
+  isDataProvider,
+} from './DataProvider';
 export { default as Meta } from './Meta';
 export { default as Notifier } from './Notifier';
 export { default as Resource } from './Resource';

@@ -97,16 +97,16 @@ class DataProvider {
       const proxy = signal.proxy();
 
       resolve(
-        Promise.resolve(this.handleGet(resource, query, options, getMeta(meta), proxy)).then(
-          (result) => {
-            if (typeof result === 'function') {
-              // `proxy` is being passed down here for backwards compatibility
-              result(cb, proxy);
-            } else {
-              cb(undefined, true, result);
-            }
-          },
-        ),
+        Promise.resolve(
+          this.handleGet(resource, query, options, getMeta(meta), proxy),
+        ).then((result) => {
+          if (typeof result === 'function') {
+            // `proxy` is being passed down here for backwards compatibility
+            result(cb, proxy);
+          } else {
+            cb(undefined, true, result);
+          }
+        }),
       );
     }).catch((e) => {
       if (!signal.locked) callback(e, true, []);
@@ -117,7 +117,11 @@ class DataProvider {
     return new Promise((resolve) => {
       if (resource == null) throw new Error('No resource name specified');
       if (data == null) throw new Error('No data specified');
-      resolve(Promise.resolve(this.handleCreate(resource, data, options, getMeta(meta))));
+      resolve(
+        Promise.resolve(
+          this.handleCreate(resource, data, options, getMeta(meta)),
+        ),
+      );
     });
   }
 
@@ -125,7 +129,11 @@ class DataProvider {
     return new Promise((resolve) => {
       if (resource == null) throw new Error('No resource name specified');
       if (data == null) throw new Error('No data specified');
-      resolve(Promise.resolve(this.handleUpdate(resource, query, data, options, getMeta(meta))));
+      resolve(
+        Promise.resolve(
+          this.handleUpdate(resource, query, data, options, getMeta(meta)),
+        ),
+      );
     });
   }
 
@@ -133,14 +141,22 @@ class DataProvider {
     return new Promise((resolve) => {
       if (resource == null) throw new Error('No resource name specified');
       if (data == null) throw new Error('No data specified');
-      resolve(Promise.resolve(this.handlePatch(resource, query, data, options, getMeta(meta))));
+      resolve(
+        Promise.resolve(
+          this.handlePatch(resource, query, data, options, getMeta(meta)),
+        ),
+      );
     });
   }
 
   remove(resource, query, options, meta) {
     return new Promise((resolve) => {
       if (resource == null) throw new Error('No resource name specified');
-      resolve(Promise.resolve(this.handleRemove(resource, query, options, getMeta(meta))));
+      resolve(
+        Promise.resolve(
+          this.handleRemove(resource, query, options, getMeta(meta)),
+        ),
+      );
     });
   }
 
@@ -150,7 +166,8 @@ class DataProvider {
 
   shouldPersist(nextRequestDetails, prevRequestDetails, persistent) {
     return (
-      persistent === 'very' || (persistent && prevRequestDetails.name === nextRequestDetails.name)
+      persistent === 'very' ||
+      (persistent && prevRequestDetails.name === nextRequestDetails.name)
     );
   }
 
@@ -178,7 +195,10 @@ class DataProvider {
     if (prevContext.data.length > 0) {
       result = nextContext.data.map((nextItem) => {
         const id = this.getItemIdentifier(nextItem);
-        if (id != null && Object.prototype.hasOwnProperty.call(prevMapping, id)) {
+        if (
+          id != null &&
+          Object.prototype.hasOwnProperty.call(prevMapping, id)
+        ) {
           const prevItem = prevMapping[id];
           if (this.compareItemVersions(nextItem, prevItem)) return prevItem;
         }
@@ -189,7 +209,10 @@ class DataProvider {
     }
     if (
       prevContext.data.length === result.length &&
-      result.reduce((sum, item, i) => sum && Object.is(prevContext.data[i], item), true)
+      result.reduce(
+        (sum, item, i) => sum && Object.is(prevContext.data[i], item),
+        true,
+      )
     ) {
       return prevContext.data;
     }

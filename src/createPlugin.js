@@ -1,7 +1,9 @@
 import DataProvider from './DataProvider';
 
 function createPlugin(plugin) {
-  if (typeof plugin !== 'function') throw new Error('No valid plugin definition specified');
+  if (typeof plugin !== 'function') {
+    throw new Error('No valid plugin definition specified');
+  }
   return (dataProviderClass) => {
     if (!Object.prototype.isPrototypeOf.call(DataProvider, dataProviderClass)) {
       console.error(

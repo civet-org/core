@@ -27,7 +27,8 @@ function reducer(state, action) {
   switch (action.type) {
     // Creates a new request and instructs the resource to fetch data.
     case 'next-request': {
-      const { requestDetails: nextRequestDetails, persistent: nextPersistent } = action;
+      const { requestDetails: nextRequestDetails, persistent: nextPersistent } =
+        action;
       const nextRequest = uniqueIdentifier(state.request);
       const nextRevision = uniqueIdentifier(state.revision);
       let isPersistent = false;
@@ -93,7 +94,9 @@ function reducer(state, action) {
     // Updates the current request's data.
     case 'update-data': {
       const { request, revision, value } = action;
-      if (request !== state.request || revision !== state.revision) return state;
+      if (request !== state.request || revision !== state.revision) {
+        return state;
+      }
       return {
         ...state,
         isLoading: value.isIncomplete,
@@ -109,7 +112,8 @@ function reducer(state, action) {
  * Starts fetching data and updates the resource when new data is available.
  */
 function fetchData(requestInstruction, instance, abortSignal, dispatch) {
-  const { dataProvider, requestDetails, request, revision, value } = requestInstruction;
+  const { dataProvider, requestDetails, request, revision, value } =
+    requestInstruction;
 
   const meta = new Meta({ ...value.meta }, instance);
 
@@ -185,7 +189,12 @@ function useResource({
   const currentDataProvider = dataProviderProp || configContext.dataProvider;
 
   const nextRequestDetails = useMemo(
-    () => ({ name: nextName, query: nextQuery, empty: nextEmpty, options: nextOptions }),
+    () => ({
+      name: nextName,
+      query: nextQuery,
+      empty: nextEmpty,
+      options: nextOptions,
+    }),
     [nextName, nextQuery, nextEmpty, nextOptions],
   );
   const [state, dispatch] = useReducer(reducer, undefined, () => {
@@ -275,7 +284,9 @@ function useResource({
 
   // Fetch data when instructed
   useEffect(() => {
-    if (instance == null || requestInstruction.requestDetails.empty) return undefined;
+    if (instance == null || requestInstruction.requestDetails.empty) {
+      return undefined;
+    }
 
     const abortSignal = new AbortSignal();
 
@@ -301,7 +312,10 @@ function useResource({
   );
 
   // Apply context plugins and return the final context.
-  return dataProvider.contextPlugins.reduce((result, fn) => fn(result, rest), context);
+  return dataProvider.contextPlugins.reduce(
+    (result, fn) => fn(result, rest),
+    context,
+  );
 }
 
 export default useResource;
