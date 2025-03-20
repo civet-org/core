@@ -27,8 +27,25 @@ const propTypes = {
  *
  * The provided DataProvider must not be changed.
  */
-function Resource({ dataProvider, name, query, empty, options, persistent, children, ...rest }) {
-  const context = useResource({ dataProvider, name, query, empty, options, persistent, ...rest });
+function Resource({
+  dataProvider,
+  name,
+  query,
+  empty,
+  options,
+  persistent,
+  children,
+  ...rest
+}) {
+  const context = useResource({
+    dataProvider,
+    name,
+    query,
+    empty,
+    options,
+    persistent,
+    ...rest,
+  });
 
   return context.dataProvider.uiPlugins.reduceRight(
     (next, Plugin) =>
@@ -38,7 +55,11 @@ function Resource({ dataProvider, name, query, empty, options, persistent, child
           {next}
         </Plugin>
       ),
-    (result) => <ResourceContext.Provider value={result}>{children}</ResourceContext.Provider>,
+    (result) => (
+      <ResourceContext.Provider value={result}>
+        {children}
+      </ResourceContext.Provider>
+    ),
   )(context);
 }
 

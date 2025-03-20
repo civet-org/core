@@ -15,12 +15,17 @@ class ChannelNotifier {
     if (channel == null || !`${channel}`) {
       throw new Error('Channel is required');
     }
-    return this.channels[channel] != null && this.channels[channel].isSubscribed(handler);
+    return (
+      this.channels[channel] != null &&
+      this.channels[channel].isSubscribed(handler)
+    );
   };
 
   trigger = (channel, ...args) => {
     if (channel == null) {
-      Object.values(this.channels).forEach((notifier) => notifier.trigger(...args));
+      Object.values(this.channels).forEach((notifier) =>
+        notifier.trigger(...args),
+      );
     } else if (this.channels[channel] != null) {
       this.channels[channel].trigger(...args);
     }

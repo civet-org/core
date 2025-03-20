@@ -9,7 +9,9 @@ import { ConfigContext } from './context';
 function ConfigProvider({ dataProvider, children }) {
   const context = useMemo(() => ({ dataProvider }), [dataProvider]);
 
-  return <ConfigContext.Provider value={context}>{children}</ConfigContext.Provider>;
+  return (
+    <ConfigContext.Provider value={context}>{children}</ConfigContext.Provider>
+  );
 }
 
 ConfigProvider.propTypes = {
