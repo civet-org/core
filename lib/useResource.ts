@@ -1,13 +1,82 @@
-import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+  type Dispatch,
+} from 'react';
 import AbortSignal from './AbortSignal';
+import type {
+  GenericDataProvider,
+  InferInstance,
+  InferItem,
+  InferOptions,
+  InferQuery,
+  Persistence,
+  RequestDetails,
+  ResourceBaseContext,
+  ResourceContextValue,
+} from './DataProvider';
 import Meta from './Meta';
 import { useConfigContext } from './context';
 import uniqueIdentifier from './uniqueIdentifier';
 
+type BaseState<
+  DataProviderI extends GenericDataProvider,
+  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
+  OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
+> = {
+  dataProvider: DataProviderI;
+  requestDetails: RequestDetails<QueryI, OptionsI>;
+  request: string;
+  revision: string;
+  isLoading: boolean;
+  value: ResourceBaseContext<ItemI, QueryI, OptionsI>;
+  persistent: Persistence;
+};
+
+type RequestInstruction<
+  DataProviderI extends GenericDataProvider,
+  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
+  OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
+> = {
+  dataProvider: DataProviderI;
+  requestDetails: RequestDetails<QueryI, OptionsI>;
+  request: string;
+  revision: string;
+  value: ResourceBaseContext<ItemI, QueryI, OptionsI>;
+};
+
+type State<
+  DataProviderI extends GenericDataProvider,
+  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
+  OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
+> = BaseState<DataProviderI, ItemI, QueryI, OptionsI> & {
+  requestInstruction: RequestInstruction<
+    DataProviderI,
+    ItemI,
+    QueryI,
+    OptionsI
+  >;
+};
+
 /**
  * Appends a new requestInstruction to the state, causing the resource to fetch data.
  **/
-function createRequestInstruction(state) {
+function createRequestInstruction<
+  DataProviderI extends GenericDataProvider,
+  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
+  OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
+>(
+  state:
+    | BaseState<DataProviderI, ItemI, QueryI, OptionsI>
+    | State<DataProviderI, ItemI, QueryI, OptionsI>,
+): State<DataProviderI, ItemI, QueryI, OptionsI> {
   return {
     ...state,
     requestInstruction: {
@@ -20,10 +89,44 @@ function createRequestInstruction(state) {
   };
 }
 
+type Action<
+  DataProviderI extends GenericDataProvider,
+  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
+  OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
+> =
+  | {
+      type: 'next-request';
+      requestDetails: RequestDetails<QueryI, OptionsI>;
+      persistent: Persistence;
+    }
+  | {
+      type: 'next-revision';
+      notify: (next: { request: string; revision: string }) => void;
+    }
+  | {
+      type: 'set-persistence';
+      persistent: Persistence;
+    }
+  | {
+      type: 'update-data';
+      request: string;
+      revision: string;
+      value: ResourceBaseContext<ItemI, QueryI, OptionsI>;
+    };
+
 /**
  * State reducer for the resource.
  */
-function reducer(state, action) {
+function reducer<
+  DataProviderI extends GenericDataProvider,
+  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
+  OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
+>(
+  state: State<DataProviderI, ItemI, QueryI, OptionsI>,
+  action: Action<DataProviderI, ItemI, QueryI, OptionsI>,
+): State<DataProviderI, ItemI, QueryI, OptionsI> {
   switch (action.type) {
     // Creates a new request and instructs the resource to fetch data.
     case 'next-request': {
@@ -31,7 +134,7 @@ function reducer(state, action) {
         action;
       const nextRequest = uniqueIdentifier(state.request);
       const nextRevision = uniqueIdentifier(state.revision);
-      let isPersistent = false;
+      let isPersistent: Persistence = false;
       if (state.persistent === 'very' && nextPersistent === 'very') {
         isPersistent = 'very';
       } else if (state.persistent && nextPersistent) {
@@ -45,7 +148,7 @@ function reducer(state, action) {
           isPersistent,
           state.value,
         );
-      return createRequestInstruction({
+      return createRequestInstruction<DataProviderI, ItemI, QueryI, OptionsI>({
         dataProvider: state.dataProvider,
         requestDetails: nextRequestDetails,
         request: nextRequest,
@@ -74,8 +177,8 @@ function reducer(state, action) {
     case 'next-revision': {
       const { notify } = action;
       const nextRevision = uniqueIdentifier(state.revision);
-      notify({ request: state.request, revison: nextRevision });
-      return createRequestInstruction({
+      notify({ request: state.request, revision: nextRevision });
+      return createRequestInstruction<DataProviderI, ItemI, QueryI, OptionsI>({
         ...state,
         revision: nextRevision,
         isLoading: !state.requestDetails.empty,
@@ -111,20 +214,44 @@ function reducer(state, action) {
 /**
  * Starts fetching data and updates the resource when new data is available.
  */
-function fetchData(requestInstruction, instance, abortSignal, dispatch) {
+function fetchData<
+  DataProviderI extends GenericDataProvider,
+  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
+  OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
+>(
+  requestInstruction: RequestInstruction<
+    DataProviderI,
+    ItemI,
+    QueryI,
+    OptionsI
+  >,
+  instance: InferInstance<DataProviderI>,
+  abortSignal: AbortSignal,
+  dispatch: Dispatch<Action<DataProviderI, ItemI, QueryI, OptionsI>>,
+): void {
   const { dataProvider, requestDetails, request, revision, value } =
     requestInstruction;
 
   const meta = new Meta({ ...value.meta }, instance);
 
-  let promise = Promise.resolve(value);
+  let promise: Promise<ResourceBaseContext<ItemI, QueryI, OptionsI>> =
+    Promise.resolve(value);
 
-  const callback = (error, done, data) => {
+  const callback = (
+    error: Error | undefined,
+    done: boolean,
+    data: ItemI[],
+  ): void => {
     promise = promise.then((prevValue) => {
       try {
         let nextValue;
         if (error != null) {
-          nextValue = { ...prevValue, error, isIncomplete: false };
+          nextValue = {
+            ...prevValue,
+            error,
+            isIncomplete: false,
+          };
         } else {
           const context = {
             name: requestDetails.name,
@@ -139,8 +266,11 @@ function fetchData(requestInstruction, instance, abortSignal, dispatch) {
             isIncomplete: !done,
             isInitial: !!prevValue.isInitial && !done,
           };
-          context.data = dataProvider.transition(context, prevValue);
-          context.data = dataProvider.recycleItems(context, prevValue);
+          context.data = dataProvider.transition(context, prevValue) as ItemI[];
+          context.data = dataProvider.recycleItems(
+            context,
+            prevValue,
+          ) as ItemI[];
           nextValue = context;
         }
 
@@ -153,7 +283,7 @@ function fetchData(requestInstruction, instance, abortSignal, dispatch) {
     });
   };
 
-  dataProvider.continuousGet(
+  dataProvider.continuousGet<ItemI, QueryI, OptionsI>(
     requestDetails.name,
     requestDetails.query,
     requestDetails.options,
@@ -170,7 +300,12 @@ function fetchData(requestInstruction, instance, abortSignal, dispatch) {
  *
  * The provided DataProvider must not be changed.
  */
-function useResource({
+export default function useResource<
+  DataProviderI extends GenericDataProvider,
+  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
+  OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
+>({
   /** DataProvider to be used for requests - must not be changed */
   dataProvider: dataProviderProp,
   /** Resource name */
@@ -184,15 +319,23 @@ function useResource({
   /** Whether stale data should be retained during the next request - this only applies if name did not change, unless set to "very" */
   persistent: nextPersistent,
   ...rest
-}) {
-  const configContext = useConfigContext();
-  const currentDataProvider = dataProviderProp || configContext.dataProvider;
+}: {
+  dataProvider?: DataProviderI;
+  name: string;
+  query: QueryI;
+  empty?: boolean;
+  options?: OptionsI;
+  persistent?: Persistence;
+  [rest: string]: unknown;
+}): ResourceContextValue<DataProviderI, ItemI, QueryI, OptionsI> {
+  const configContext = useConfigContext<DataProviderI>();
+  const currentDataProvider = dataProviderProp || configContext.dataProvider!;
 
-  const nextRequestDetails = useMemo(
+  const nextRequestDetails = useMemo<RequestDetails<QueryI, OptionsI>>(
     () => ({
       name: nextName,
       query: nextQuery,
-      empty: nextEmpty,
+      empty: !!nextEmpty,
       options: nextOptions,
     }),
     [nextName, nextQuery, nextEmpty, nextOptions],
@@ -200,7 +343,7 @@ function useResource({
   const [state, dispatch] = useReducer(reducer, undefined, () => {
     const request = uniqueIdentifier();
     const revision = uniqueIdentifier();
-    return createRequestInstruction({
+    return createRequestInstruction<DataProviderI, ItemI, QueryI, OptionsI>({
       dataProvider: currentDataProvider,
       requestDetails: nextRequestDetails,
       request,
@@ -219,7 +362,7 @@ function useResource({
         isIncomplete: !nextRequestDetails.empty,
         isInitial: !nextRequestDetails.empty,
       },
-      persistent: nextPersistent,
+      persistent: nextPersistent ?? false,
     });
   });
   const {
@@ -244,10 +387,11 @@ function useResource({
     );
   }
 
-  const [instance, setInstance] = useState();
+  const [instance, setInstance] = useState<InferInstance<DataProviderI>>();
   useEffect(() => {
-    const i = dataProvider.createInstance();
-    setInstance(i ?? {});
+    const i = (dataProvider.createInstance() ??
+      {}) as InferInstance<DataProviderI>;
+    setInstance(i);
     return () => {
       dataProvider.releaseInstance(i);
     };
@@ -260,15 +404,15 @@ function useResource({
     dispatch({
       type: 'next-request',
       requestDetails: nextRequestDetails,
-      persistent: nextPersistent,
+      persistent: nextPersistent ?? false,
     });
-  } else if (persistent !== nextPersistent) {
-    dispatch({ type: 'set-persistence', persistent: nextPersistent });
+  } else if (persistent !== (nextPersistent ?? false)) {
+    dispatch({ type: 'set-persistence', persistent: nextPersistent ?? false });
   }
 
   const notify = useCallback(
     async () =>
-      new Promise((resolve) => {
+      new Promise<{ request: string; revision: string }>((resolve) => {
         dispatch({ type: 'next-revision', notify: resolve });
       }),
     [],
@@ -291,7 +435,12 @@ function useResource({
     const abortSignal = new AbortSignal();
 
     // Start fetching data.
-    fetchData(requestInstruction, instance, abortSignal, dispatch);
+    fetchData<DataProviderI, ItemI, QueryI, OptionsI>(
+      requestInstruction,
+      instance,
+      abortSignal,
+      dispatch,
+    );
 
     return () => {
       // Abort fetching data when another request is pending or the React component is unmounted.
@@ -314,8 +463,6 @@ function useResource({
   // Apply context plugins and return the final context.
   return dataProvider.contextPlugins.reduce(
     (result, fn) => fn(result, rest),
-    context,
-  );
+    context as ResourceContextValue<GenericDataProvider>,
+  ) as ResourceContextValue<DataProviderI, ItemI, QueryI, OptionsI>;
 }
-
-export default useResource;
