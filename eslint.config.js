@@ -1,50 +1,55 @@
 import js from '@eslint/js';
 import importPlugin from 'eslint-plugin-import';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-import reactPlugin from 'eslint-plugin-react';
-import reactHooksPlugin from 'eslint-plugin-react-hooks';
-import unusedImportsPlugin from 'eslint-plugin-unused-imports';
+import prettier from 'eslint-plugin-prettier/recommended';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import unusedImports from 'eslint-plugin-unused-imports';
+import { globalIgnores } from 'eslint/config';
 import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
-export default [
-  js.configs.recommended,
-  reactPlugin.configs.flat.recommended,
-  reactPlugin.configs.flat['jsx-runtime'],
-  reactHooksPlugin.configs['recommended-latest'],
-  eslintPluginPrettierRecommended,
-
-  { ignores: ['lib/*'] },
-  { files: ['src/**/*.{js,jsx}'] },
+export default tseslint.config([
+  globalIgnores(['dist']),
   {
-    linterOptions: {
-      reportUnusedDisableDirectives: 'warn',
-    },
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+      reactHooks.configs['recommended-latest'],
+      reactRefresh.configs.vite,
+      prettier,
+    ],
     settings: {
-      react: { version: 'detect' },
       'import/resolver': {
-        node: {
-          extensions: ['.js', '.jsx'],
+        typescript: true,
+        alias: {
+          extensions: ['.ts', '.tsx'],
+          map: [
+            ['@', './lib'],
+            ['@demo', './demo'],
+            ['', './demo/public'],
+          ],
         },
       },
     },
     languageOptions: {
       ecmaVersion: 'latest',
-      sourceType: 'module',
-      globals: {
-        ...globals.browser,
-        ...globals.es2022,
-      },
+      globals: globals.browser,
     },
     plugins: {
-      'unused-imports': unusedImportsPlugin,
+      'unused-imports': unusedImports,
       import: importPlugin,
     },
     rules: {
-      // 'react/prop-types': 'off',
-      'react/jsx-filename-extension': ['error', { extensions: ['.jsx'] }],
-      'react/self-closing-comp': 'error',
-      'no-unused-vars': ['error', { ignoreRestSiblings: true }],
-      'no-use-before-define': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          ignoreRestSiblings: true,
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
       'arrow-body-style': 'error',
       'unused-imports/no-unused-imports': 'error',
       'import/no-unresolved': 'error',
@@ -66,4 +71,4 @@ export default [
       'import/newline-after-import': 'error',
     },
   },
-];
+]);

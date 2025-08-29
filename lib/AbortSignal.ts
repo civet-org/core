@@ -1,8 +1,17 @@
 import Notifier from './Notifier';
 
-class AbortSignal {
+export type AbortSignalProxy = {
+  listen: AbortSignal['listen'];
+  locked: AbortSignal['locked'];
+  aborted: AbortSignal['aborted'];
+};
+
+export default class AbortSignal {
+  notifier = new Notifier();
+  readonly locked: boolean = false;
+  readonly aborted: boolean = false;
+
   constructor() {
-    this.notifier = new Notifier();
     Object.defineProperties(this, {
       locked: {
         value: false,
@@ -19,7 +28,7 @@ class AbortSignal {
     });
   }
 
-  listen = (cb) => {
+  listen = (cb: () => void): (() => void) => {
     if (this.locked) return () => {};
     const alreadySubscribed = this.notifier.isSubscribed(cb);
     const unsubscribe = this.notifier.subscribe(cb);
@@ -27,7 +36,7 @@ class AbortSignal {
     return unsubscribe;
   };
 
-  abort = () => {
+  abort = (): void => {
     if (this.locked) return;
     this.lock();
     Object.defineProperty(this, 'aborted', {
@@ -39,7 +48,7 @@ class AbortSignal {
     this.notifier.trigger();
   };
 
-  lock = () => {
+  lock = (): void => {
     if (this.locked) return;
     Object.defineProperty(this, 'locked', {
       value: true,
@@ -49,20 +58,19 @@ class AbortSignal {
     });
   };
 
-  proxy = () => {
+  proxy = (): AbortSignalProxy => {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const s = this;
     return {
       listen(cb) {
         return s.listen(cb);
       },
       get locked() {
-        return s.locked;
+        return s.locked!;
       },
       get aborted() {
-        return s.locked;
+        return s.aborted!;
       },
     };
   };
 }
-
-export default AbortSignal;

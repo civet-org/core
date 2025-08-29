@@ -1,27 +1,33 @@
 import Notifier from './Notifier';
 
-class ChannelNotifier {
-  channels = {};
+export default class ChannelNotifier<TriggerArgs extends unknown[] = never[]> {
+  private channels: { [channel: string]: Notifier<TriggerArgs> } = {};
 
-  subscribe = (channel, handler) => {
+  subscribe = (
+    channel: string,
+    callback: (...args: TriggerArgs) => void,
+  ): (() => void) => {
     if (channel == null || !`${channel}`) {
       throw new Error('Channel is required');
     }
     if (this.channels[channel] == null) this.channels[channel] = new Notifier();
-    return this.channels[channel].subscribe(handler);
+    return this.channels[channel].subscribe(callback);
   };
 
-  isSubscribed = (channel, handler) => {
+  isSubscribed = (
+    channel: string,
+    callback: (...args: TriggerArgs) => void,
+  ): boolean => {
     if (channel == null || !`${channel}`) {
       throw new Error('Channel is required');
     }
     return (
       this.channels[channel] != null &&
-      this.channels[channel].isSubscribed(handler)
+      this.channels[channel].isSubscribed(callback)
     );
   };
 
-  trigger = (channel, ...args) => {
+  trigger = (channel: string, ...args: TriggerArgs): void => {
     if (channel == null) {
       Object.values(this.channels).forEach((notifier) =>
         notifier.trigger(...args),
@@ -31,5 +37,3 @@ class ChannelNotifier {
     }
   };
 }
-
-export default ChannelNotifier;

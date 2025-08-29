@@ -7,7 +7,7 @@ import { v1 as uuid } from 'uuid';
  *
  * @param {string?} previous Previous identifier
  */
-function uniqueIdentifier(previous) {
+export default function uniqueIdentifier(previous?: string): string {
   let prefix;
   let value;
   let scope;
@@ -23,5 +23,3 @@ function uniqueIdentifier(previous) {
   }
   return `${prefix}$${value.toString(36).padStart(11, '0')}$${scope}`;
 }
-
-export default uniqueIdentifier;
