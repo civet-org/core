@@ -18,7 +18,6 @@ export type {
 } from './createPlugin';
 export { default as DataProvider, isDataProvider } from './DataProvider';
 export type {
-  Constructor,
   ContextPlugin,
   ContinuousGet,
   DataProviderImplementation,
@@ -48,6 +47,7 @@ export { default as Notifier } from './Notifier';
 export { default as Resource } from './Resource';
 export { default as ResourceProvider } from './ResourceProvider';
 export { default as useResource } from './useResource';
+export type { Constructor } from './utilityTypes';
 export {
   ConfigConsumer,
   ResourceConsumer,

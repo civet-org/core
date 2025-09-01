@@ -306,25 +306,25 @@ export default function useResource<
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
 >({
-  /** DataProvider to be used for requests - must not be changed */
   dataProvider: dataProviderProp,
-  /** Resource name */
   name: nextName,
-  /** Query instructions */
   query: nextQuery,
-  /** Disables fetching data, resulting in an empty data array */
   empty: nextEmpty,
-  /** Query options for requests */
   options: nextOptions,
-  /** Whether stale data should be retained during the next request - this only applies if name did not change, unless set to "very" */
   persistent: nextPersistent,
   ...rest
 }: {
+  /** DataProvider to be used for requests - must not be changed */
   dataProvider?: DataProviderI;
+  /** Resource name */
   name: string;
+  /** Query instructions */
   query: QueryI;
+  /** Disables fetching data, resulting in an empty data array */
   empty?: boolean;
+  /** Query options for requests */
   options?: OptionsI;
+  /** Whether stale data should be retained during the next request - this only applies if name did not change, unless set to "very" */
   persistent?: Persistence;
   [rest: string]: unknown;
 }): ResourceContextValue<DataProviderI, ItemI, QueryI, OptionsI> {

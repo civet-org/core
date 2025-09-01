@@ -4,7 +4,7 @@ import './App.css';
 import DemoDataProvider from './DemoDataProvider';
 import DemoResource from './DemoResource';
 
-function App() {
+export default function App() {
   const [dataProvider] = useState(() => new DemoDataProvider('demo'));
 
   return (
@@ -13,5 +13,3 @@ function App() {
     </ConfigProvider>
   );
 }
-
-export default App;

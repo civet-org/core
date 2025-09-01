@@ -1,7 +1,7 @@
 import DataProvider, {
-  type Constructor,
   type GenericDataProviderImplementation,
 } from './DataProvider';
+import type { Constructor } from './utilityTypes';
 
 export type DataProviderImplementationWithPlugin<
   BaseDataProvider extends GenericDataProviderImplementation,

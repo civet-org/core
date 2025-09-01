@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import AbortSignal, { type AbortSignalProxy } from './AbortSignal';
 import ChannelNotifier from './ChannelNotifier';
 import Meta, { type MetaLike, type RawMeta } from './Meta';
+import type { Constructor } from './utilityTypes';
 
 const getMeta = <Instance = unknown>(
   meta: MetaLike<Instance> | undefined,
@@ -446,9 +447,6 @@ export default abstract class DataProvider<
 
 export const isDataProvider = (dataProvider: unknown): boolean =>
   dataProvider instanceof DataProvider;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Constructor<Args extends any[], T> = new (...args: Args) => T;
 
 export type DataProviderImplementation<
   DataProviderI extends GenericDataProvider,
