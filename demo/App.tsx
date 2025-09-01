@@ -5,7 +5,7 @@ import DemoDataProvider from './DemoDataProvider';
 import DemoResource from './DemoResource';
 
 function App() {
-  const [dataProvider] = useState(() => new DemoDataProvider());
+  const [dataProvider] = useState(() => new DemoDataProvider('demo'));
 
   return (
     <ConfigProvider dataProvider={dataProvider}>
