@@ -33,9 +33,23 @@ export const useConfigContext = <DataProviderI extends GenericDataProvider>() =>
 export const ResourceContext = createContext<
   ResourceContextValue<GenericDataProvider>
 >({
+  name: '',
+  query: undefined,
+  options: undefined,
+  request: '',
+  revision: '',
   data: [],
+  meta: {},
+  error: undefined,
+  isEmpty: true,
+  isIncomplete: false,
+  isInitial: true,
+  dataProvider: undefined as unknown as GenericDataProvider,
+  isLoading: false,
+  isStale: false,
+  next: { request: '', revision: '' },
   notify: () => Promise.reject(new Error('Missing context provider')),
-} as unknown as ResourceContextValue<GenericDataProvider>);
+});
 ResourceContext.displayName = 'ResourceContext';
 export const ResourceConsumer =
   ResourceContext.Consumer as ExoticComponent<GenericDataProvider> & {

@@ -19,10 +19,6 @@ export type DemoInstance = {
   instanceID: string;
 };
 
-export type MyItem<ResourcePath> = ResourcePath extends 'assets/devices'
-  ? { a: string }
-  : object;
-
 export default class DemoDataProvider extends DataProvider<
   DemoItem,
   DemoQuery,
