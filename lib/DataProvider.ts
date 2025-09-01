@@ -246,8 +246,8 @@ export default abstract class DataProvider<
   ): Promise<Item[]> | Item[] | ContinuousGet<Item>;
 
   create<
-    CreateDataI extends CreateData = CreateData,
     CreateResultI extends CreateResult = CreateResult,
+    CreateDataI extends CreateData = CreateData,
     OptionsI extends Options = Options,
   >(
     resource: string,
@@ -276,9 +276,9 @@ export default abstract class DataProvider<
   ): Promise<CreateResult> | CreateResult;
 
   update<
-    UpdateDataI extends UpdateData = UpdateData,
     UpdateResultI extends UpdateResult = UpdateResult,
     QueryI extends Query = Query,
+    UpdateDataI extends UpdateData = UpdateData,
     OptionsI extends Options = Options,
   >(
     resource: string,
@@ -309,9 +309,9 @@ export default abstract class DataProvider<
   ): Promise<UpdateResult> | UpdateResult;
 
   patch<
-    PatchDataI extends PatchData = PatchData,
     PatchResultI extends PatchResult = PatchResult,
     QueryI extends Query = Query,
+    PatchDataI extends PatchData = PatchData,
     OptionsI extends Options = Options,
   >(
     resource: string,
