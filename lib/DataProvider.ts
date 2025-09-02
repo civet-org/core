@@ -57,7 +57,7 @@ export type UIPlugin<
     context: ResourceContextValue<GenericDataProvider>;
     children: (
       context: ResourceContextValue<GenericDataProvider> & PluginTypes,
-    ) => ReactNode | undefined;
+    ) => ReactNode;
   }
 >;
 
