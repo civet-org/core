@@ -38,6 +38,7 @@
     "lint:fix": "npm run lint -- --fix",
     "prettify": "prettier . --write",
     "preview": "vite preview",
+    "postversion": "git commit -am$npm_package_version",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
