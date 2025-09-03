@@ -221,7 +221,7 @@ export default abstract class DataProvider<
       resolve(
         Promise.resolve(
           this.handleGet(resource, query, options, getMeta(meta), proxy) as
-            | Promise<ItemI[]>
+            | Promise<ItemI[] | ContinuousGet<ItemI>>
             | ItemI[]
             | ContinuousGet<ItemI>,
         ).then((result) => {
@@ -244,7 +244,7 @@ export default abstract class DataProvider<
     options: Options | undefined,
     meta: Meta<Instance>,
     abortSignal: AbortSignalProxy,
-  ): Promise<Item[]> | Item[] | ContinuousGet<Item>;
+  ): Promise<Item[] | ContinuousGet<Item>> | Item[] | ContinuousGet<Item>;
 
   create<
     CreateResultI extends CreateResult = CreateResult,
@@ -462,7 +462,9 @@ export type DataProviderImplementation<
       meta: Meta<InferInstance<DataProviderI>>,
       abortSignal: AbortSignalProxy,
     ):
-      | Promise<InferItem<DataProviderI>[]>
+      | Promise<
+          InferItem<DataProviderI>[] | ContinuousGet<InferItem<DataProviderI>>
+        >
       | InferItem<DataProviderI>[]
       | ContinuousGet<InferItem<DataProviderI>>;
 

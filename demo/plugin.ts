@@ -28,7 +28,7 @@ const demoPlugin = createPlugin<
         meta: Meta<InferInstance<this>>,
         abortSignal: AbortSignalProxy,
       ):
-        | Promise<InferItem<this>[]>
+        | Promise<InferItem<this>[] | ContinuousGet<InferItem<this>>>
         | InferItem<this>[]
         | ContinuousGet<InferItem<this>> {
         return super.handleGet(resource, query, options, meta, abortSignal);

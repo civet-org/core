@@ -38,7 +38,10 @@ export default class DemoDataProvider extends DataProvider<
 
   handleGet(
     resourceName: string,
-  ): DemoItem[] | Promise<DemoItem[]> | ContinuousGet<DemoItem> {
+  ):
+    | Promise<DemoItem[] | ContinuousGet<DemoItem>>
+    | DemoItem[]
+    | ContinuousGet<DemoItem> {
     switch (resourceName) {
       case 'haha':
         return [
