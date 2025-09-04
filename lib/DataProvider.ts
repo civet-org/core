@@ -405,7 +405,7 @@ export default abstract class DataProvider<
     return true;
   }
 
-  getItemIdentifier(item: Item): string {
+  getItemIdentifier(item: Item): string | undefined {
     return objectHash(item as object);
   }
 
