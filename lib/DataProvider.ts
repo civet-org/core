@@ -3,12 +3,16 @@ import objectHash from 'object-hash';
 import type { ReactNode } from 'react';
 import AbortSignal, { type AbortSignalProxy } from './AbortSignal';
 import ChannelNotifier from './ChannelNotifier';
-import Meta, { type MetaLike, type RawMeta } from './Meta';
+import Meta, {
+  type InferInstance,
+  type InferSchema,
+  type MetaLike,
+} from './Meta';
 import type { Constructor } from './utilityTypes';
 
-const getMeta = <Instance = unknown>(
-  meta: MetaLike<Instance> | undefined,
-): Meta<Instance> => (meta instanceof Meta ? meta : new Meta(meta));
+const getMeta = <MetaI extends Meta>(
+  meta: MetaLike<MetaI> | undefined,
+): MetaI => (meta instanceof Meta ? meta : new Meta(meta)) as MetaI;
 
 export type RequestDetails<Query, Options> = {
   name: string;
@@ -17,14 +21,14 @@ export type RequestDetails<Query, Options> = {
   options: Options | undefined;
 };
 
-export type ResourceBaseContext<Item, Query, Options> = {
+export type ResourceBaseContext<Item, Query, Options, MetaType extends Meta> = {
   name: string;
   query: Query;
   options: Options | undefined;
   request: string;
   revision: string;
   data: Item[];
-  meta: RawMeta;
+  meta: InferSchema<MetaType>;
   error: Error | undefined;
   isEmpty: boolean;
   isIncomplete: boolean;
@@ -36,7 +40,8 @@ export type ResourceContextValue<
   ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
-> = ResourceBaseContext<ItemI, QueryI, OptionsI> & {
+  MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
+> = ResourceBaseContext<ItemI, QueryI, OptionsI, MetaTypeI> & {
   dataProvider: DataProviderI;
   isLoading: boolean;
   isStale: boolean;
@@ -79,7 +84,7 @@ export default abstract class DataProvider<
   Item,
   Query,
   Options,
-  Instance = unknown,
+  MetaType extends Meta = Meta,
   CreateData = Item,
   CreateResult = void,
   UpdateData = Item,
@@ -91,7 +96,7 @@ export default abstract class DataProvider<
   readonly _inferItem!: Item;
   readonly _inferQuery!: Query;
   readonly _inferOptions!: Options;
-  readonly _inferInstance!: Instance;
+  readonly _inferMetaType!: MetaType;
   readonly _inferCreateData!: CreateData;
   readonly _inferCreateResult!: CreateResult;
   readonly _inferUpdateData!: UpdateData;
@@ -138,11 +143,11 @@ export default abstract class DataProvider<
     ui: (plugin: UIPlugin<unknown, unknown>) => void;
   }): void {}
 
-  createInstance(): Instance | undefined {
+  createInstance(): InferInstance<MetaType> | undefined {
     return undefined;
   }
 
-  releaseInstance(_: Instance): void {}
+  releaseInstance(_: InferInstance<MetaType>): void {}
 
   subscribe(resource: string, callback: () => void): () => void {
     if (resource == null) throw new Error('No resource name specified');
@@ -157,15 +162,16 @@ export default abstract class DataProvider<
     ItemI extends Item = Item,
     QueryI extends Query = Query,
     OptionsI extends Options = Options,
+    MetaTypeI extends MetaType = MetaType,
   >(
     resource: string,
     query: QueryI,
     options?: OptionsI,
-    meta?: MetaLike<Instance>,
+    meta?: MetaLike<MetaTypeI>,
     abortSignal?: AbortSignal,
   ): Promise<ItemI[]> {
     return new Promise((resolve, reject) =>
-      this.continuousGet<ItemI, QueryI, OptionsI>(
+      this.continuousGet<ItemI, QueryI, OptionsI, MetaTypeI>(
         resource,
         query,
         options,
@@ -186,11 +192,12 @@ export default abstract class DataProvider<
     ItemI extends Item = Item,
     QueryI extends Query = Query,
     OptionsI extends Options = Options,
+    MetaTypeI extends MetaType = MetaType,
   >(
     resource: string,
     query: QueryI,
     options: OptionsI | undefined,
-    meta: MetaLike<Instance> | undefined,
+    meta: MetaLike<MetaTypeI> | undefined,
     callback: GetCallback<ItemI>,
     abortSignal?: AbortSignal,
   ): void {
@@ -242,7 +249,7 @@ export default abstract class DataProvider<
     resource: string,
     query: Query,
     options: Options | undefined,
-    meta: Meta<Instance>,
+    meta: MetaType,
     abortSignal: AbortSignalProxy,
   ): Promise<Item[] | ContinuousGet<Item>> | Item[] | ContinuousGet<Item>;
 
@@ -250,11 +257,12 @@ export default abstract class DataProvider<
     CreateResultI extends CreateResult = CreateResult,
     CreateDataI extends CreateData = CreateData,
     OptionsI extends Options = Options,
+    MetaTypeI extends MetaType = MetaType,
   >(
     resource: string,
     data: CreateDataI,
     options?: OptionsI,
-    meta?: MetaLike<Instance>,
+    meta?: MetaLike<MetaTypeI>,
   ): Promise<CreateResultI> {
     return new Promise((resolve) => {
       if (resource == null) throw new Error('No resource name specified');
@@ -273,7 +281,7 @@ export default abstract class DataProvider<
     resource: string,
     data: CreateData,
     options: Options | undefined,
-    meta: Meta<Instance>,
+    meta: MetaType,
   ): Promise<CreateResult> | CreateResult;
 
   update<
@@ -281,12 +289,13 @@ export default abstract class DataProvider<
     QueryI extends Query = Query,
     UpdateDataI extends UpdateData = UpdateData,
     OptionsI extends Options = Options,
+    MetaTypeI extends MetaType = MetaType,
   >(
     resource: string,
     query: QueryI,
     data: UpdateDataI,
     options?: OptionsI,
-    meta?: MetaLike<Instance>,
+    meta?: MetaLike<MetaTypeI>,
   ): Promise<UpdateResultI> {
     return new Promise((resolve) => {
       if (resource == null) throw new Error('No resource name specified');
@@ -306,7 +315,7 @@ export default abstract class DataProvider<
     query: Query,
     data: UpdateData,
     options: Options | undefined,
-    meta: Meta<Instance>,
+    meta: MetaType,
   ): Promise<UpdateResult> | UpdateResult;
 
   patch<
@@ -314,12 +323,13 @@ export default abstract class DataProvider<
     QueryI extends Query = Query,
     PatchDataI extends PatchData = PatchData,
     OptionsI extends Options = Options,
+    MetaTypeI extends MetaType = MetaType,
   >(
     resource: string,
     query: QueryI,
     data: PatchDataI,
     options?: OptionsI,
-    meta?: MetaLike<Instance>,
+    meta?: MetaLike<MetaTypeI>,
   ): Promise<PatchResultI> {
     return new Promise((resolve) => {
       if (resource == null) throw new Error('No resource name specified');
@@ -339,18 +349,19 @@ export default abstract class DataProvider<
     query: Query,
     data: PatchData,
     options: Options | undefined,
-    meta: Meta<Instance>,
+    meta: MetaType,
   ): Promise<PatchResult> | PatchResult;
 
   remove<
     RemoveResultI extends RemoveResult = RemoveResult,
     QueryI extends Query = Query,
     OptionsI extends Options = Options,
+    MetaTypeI extends MetaType = MetaType,
   >(
     resource: string,
     query: QueryI,
     options?: OptionsI,
-    meta?: MetaLike<Instance>,
+    meta?: MetaLike<MetaTypeI>,
   ): Promise<RemoveResultI> {
     return new Promise((resolve) => {
       if (resource == null) throw new Error('No resource name specified');
@@ -368,7 +379,7 @@ export default abstract class DataProvider<
     resource: string,
     query: Query,
     options: Options | undefined,
-    meta: Meta<Instance>,
+    meta: MetaType,
   ): Promise<RemoveResult> | RemoveResult;
 
   compareRequests(
@@ -382,7 +393,7 @@ export default abstract class DataProvider<
     nextRequestDetails: RequestDetails<Query, Options>,
     prevRequestDetails: RequestDetails<Query, Options>,
     persistent: Persistence,
-    _context: ResourceBaseContext<Item, Query, Options>,
+    _context: ResourceBaseContext<Item, Query, Options, MetaType>,
   ): boolean {
     return (
       persistent === 'very' ||
@@ -399,15 +410,15 @@ export default abstract class DataProvider<
   }
 
   transition(
-    nextContext: ResourceBaseContext<Item, Query, Options>,
-    _prevContext: ResourceBaseContext<Item, Query, Options>,
+    nextContext: ResourceBaseContext<Item, Query, Options, MetaType>,
+    _prevContext: ResourceBaseContext<Item, Query, Options, MetaType>,
   ): Item[] {
     return nextContext.data;
   }
 
   recycleItems(
-    nextContext: ResourceBaseContext<Item, Query, Options>,
-    prevContext: ResourceBaseContext<Item, Query, Options>,
+    nextContext: ResourceBaseContext<Item, Query, Options, MetaType>,
+    prevContext: ResourceBaseContext<Item, Query, Options, MetaType>,
   ): Item[] {
     const prevMapping: { [id: string]: Item } = {};
     if (nextContext.data.length > 0) {
@@ -459,7 +470,7 @@ export type DataProviderImplementation<
       resource: string,
       query: InferQuery<DataProviderI>,
       options: InferOptions<DataProviderI> | undefined,
-      meta: Meta<InferInstance<DataProviderI>>,
+      meta: InferMetaType<DataProviderI>,
       abortSignal: AbortSignalProxy,
     ):
       | Promise<
@@ -472,7 +483,7 @@ export type DataProviderImplementation<
       resource: string,
       data: InferCreateData<DataProviderI>,
       options: InferOptions<DataProviderI> | undefined,
-      meta: Meta<InferInstance<DataProviderI>>,
+      meta: InferMetaType<DataProviderI>,
     ):
       | Promise<InferCreateResult<DataProviderI>>
       | InferCreateResult<DataProviderI>;
@@ -482,7 +493,7 @@ export type DataProviderImplementation<
       query: InferQuery<DataProviderI>,
       data: InferUpdateData<DataProviderI>,
       options: InferOptions<DataProviderI> | undefined,
-      meta: Meta<InferInstance<DataProviderI>>,
+      meta: InferMetaType<DataProviderI>,
     ):
       | Promise<InferUpdateResult<DataProviderI>>
       | InferUpdateResult<DataProviderI>;
@@ -492,7 +503,7 @@ export type DataProviderImplementation<
       query: InferQuery<DataProviderI>,
       data: InferPatchData<DataProviderI>,
       options: InferOptions<DataProviderI> | undefined,
-      meta: Meta<InferInstance<DataProviderI>>,
+      meta: InferMetaType<DataProviderI>,
     ):
       | Promise<InferPatchResult<DataProviderI>>
       | InferPatchResult<DataProviderI>;
@@ -501,7 +512,7 @@ export type DataProviderImplementation<
       resource: string,
       query: InferQuery<DataProviderI>,
       options: InferOptions<DataProviderI> | undefined,
-      meta: Meta<InferInstance<DataProviderI>>,
+      meta: InferMetaType<DataProviderI>,
     ):
       | Promise<InferRemoveResult<DataProviderI>>
       | InferRemoveResult<DataProviderI>;
@@ -512,7 +523,7 @@ export type GenericDataProvider = DataProvider<
   unknown,
   unknown,
   unknown,
-  unknown,
+  Meta,
   unknown,
   unknown,
   unknown,
@@ -537,8 +548,8 @@ export type InferQuery<DataProviderI extends GenericDataProvider> =
 export type InferOptions<DataProviderI extends GenericDataProvider> =
   DataProviderI['_inferOptions'];
 
-export type InferInstance<DataProviderI extends GenericDataProvider> =
-  DataProviderI['_inferInstance'];
+export type InferMetaType<DataProviderI extends GenericDataProvider> =
+  DataProviderI['_inferMetaType'];
 
 export type InferCreateData<DataProviderI extends GenericDataProvider> =
   DataProviderI['_inferCreateData'];

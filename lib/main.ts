@@ -26,8 +26,8 @@ export type {
   GetCallback,
   InferCreateData,
   InferCreateResult,
-  InferInstance,
   InferItem,
+  InferMetaType,
   InferOptions,
   InferPatchData,
   InferPatchResult,
@@ -42,12 +42,12 @@ export type {
   UIPlugin,
 } from './DataProvider';
 export { default as Meta } from './Meta';
-export type { MetaLike, RawMeta } from './Meta';
+export type { InferInstance, InferSchema, MetaLike } from './Meta';
 export { default as Notifier } from './Notifier';
 export { default as Resource } from './Resource';
 export { default as ResourceProvider } from './ResourceProvider';
 export { default as useResource } from './useResource';
-export type { Constructor } from './utilityTypes';
+export type { Constructor, GenericObject } from './utilityTypes';
 export {
   ConfigConsumer,
   ResourceConsumer,
