@@ -2,12 +2,11 @@ import type { AbortSignalProxy } from '@/AbortSignal';
 import type {
   ContinuousGet,
   GenericDataProviderImplementation,
-  InferInstance,
   InferItem,
+  InferMetaType,
   InferOptions,
   InferQuery,
 } from '@/DataProvider';
-import type Meta from '@/Meta';
 import createPlugin from '@/createPlugin';
 import DemoDataProvider from './DemoDataProvider';
 
@@ -25,7 +24,7 @@ const demoPlugin = createPlugin<
         resource: string,
         query: InferQuery<this>,
         options: InferOptions<this> | undefined,
-        meta: Meta<InferInstance<this>>,
+        meta: InferMetaType<this>,
         abortSignal: AbortSignalProxy,
       ):
         | Promise<InferItem<this>[] | ContinuousGet<InferItem<this>>>

@@ -1,13 +1,19 @@
-export type RawMeta = { [key: string]: unknown };
+import type { GenericObject } from './utilityTypes';
 
-export type MetaLike<Instance = unknown> = Meta<Instance> | RawMeta;
+export type MetaLike<MetaI extends Meta> = MetaI | InferSchema<MetaI>;
 
-export default class Meta<Instance = unknown> {
-  data: RawMeta;
+export default class Meta<
+  Schema extends GenericObject = GenericObject,
+  Instance = unknown,
+> {
+  readonly _inferSchema!: Schema;
+  readonly _inferInstance!: Instance;
+
+  data: Schema;
   instance?: Instance;
 
-  constructor(base?: RawMeta, instance?: Instance) {
-    this.data = base == null ? {} : base;
+  constructor(base?: Schema, instance?: Instance) {
+    this.data = (base == null ? {} : base) as Schema;
     this.instance = instance;
   }
 
@@ -17,28 +23,30 @@ export default class Meta<Instance = unknown> {
     });
   };
 
-  delete = (key: string): unknown => {
+  delete = <Key extends keyof Schema>(key: Key): Schema[Key] => {
     const value = this.data[key];
     delete this.data[key];
     return value;
   };
 
-  entries = (): [string, unknown][] => Object.entries(this.data);
+  entries = (): [keyof Schema, Schema[keyof Schema]][] =>
+    Object.entries(this.data) as [keyof Schema, Schema[keyof Schema]][];
 
-  get = (key: string): unknown => this.data[key];
+  get = <Key extends keyof Schema>(key: Key): Schema[Key] => this.data[key];
 
-  has = (key: string): boolean =>
+  has = (key: keyof Schema): boolean =>
     Object.prototype.hasOwnProperty.call(this.data, key);
 
-  keys = (): string[] => Object.keys(this.data);
+  keys = (): (keyof Schema)[] => Object.keys(this.data);
 
-  set = (key: string, value: unknown): void => {
+  set = <Key extends keyof Schema>(key: Key, value: Schema[Key]): void => {
     this.data[key] = value;
   };
 
-  values = (): unknown[] => Object.values(this.data);
+  values = (): Schema[keyof Schema][] =>
+    Object.values(this.data) as Schema[keyof Schema][];
 
-  commit = (prev: RawMeta, ignore?: string[]): RawMeta => {
+  commit = (prev: Schema, ignore?: (keyof Schema)[]): Schema => {
     const next = { ...this.data };
     ignore?.forEach((item) => {
       delete next[item];
@@ -54,3 +62,7 @@ export default class Meta<Instance = unknown> {
     return next;
   };
 }
+
+export type InferSchema<MetaI extends Meta> = MetaI['_inferSchema'];
+
+export type InferInstance<MetaI extends Meta> = MetaI['_inferInstance'];

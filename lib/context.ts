@@ -8,6 +8,7 @@ import {
 import type {
   GenericDataProvider,
   InferItem,
+  InferMetaType,
   InferOptions,
   InferQuery,
   ResourceContextValue,
@@ -59,9 +60,11 @@ export const ResourceConsumer =
       QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
       OptionsI extends
         InferOptions<DataProviderI> = InferOptions<DataProviderI>,
+      MetaTypeI extends
+        InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
     >(
       props: ConsumerProps<
-        ResourceContextValue<DataProviderI, ItemI, QueryI, OptionsI>
+        ResourceContextValue<DataProviderI, ItemI, QueryI, OptionsI, MetaTypeI>
       >,
     ): ReactNode;
   };
@@ -70,10 +73,12 @@ export const useResourceContext = <
   ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
+  MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
 >() =>
   useContext(ResourceContext) as ResourceContextValue<
     DataProviderI,
     ItemI,
     QueryI,
-    OptionsI
+    OptionsI,
+    MetaTypeI
   >;

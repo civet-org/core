@@ -1,4 +1,6 @@
 import DataProvider, { type ContinuousGet } from '@/DataProvider';
+import type Meta from '@/Meta';
+import type { GenericObject } from '@/utilityTypes';
 
 export type DemoQuery =
   | {
@@ -12,8 +14,7 @@ export type DemoOptions = {
 
 export type DemoItem = {
   id: string;
-  [key: string]: unknown;
-};
+} & GenericObject;
 
 export type DemoInstance = {
   instanceID: string;
@@ -23,6 +24,7 @@ export default class DemoDataProvider extends DataProvider<
   DemoItem,
   DemoQuery,
   DemoOptions,
+  Meta,
   DemoInstance
 > {
   static TEST = true;
