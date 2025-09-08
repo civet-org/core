@@ -46,7 +46,7 @@ export default class Meta<
   values = (): Schema[keyof Schema][] =>
     Object.values(this.data) as Schema[keyof Schema][];
 
-  commit = (prev: Schema, ignore?: (keyof Schema)[]): Schema => {
+  commit = (prev?: Schema, ignore?: (keyof Schema)[]): Schema => {
     const next = { ...this.data };
     ignore?.forEach((item) => {
       delete next[item];
