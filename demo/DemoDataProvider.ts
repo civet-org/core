@@ -1,4 +1,7 @@
-import DataProvider, { type ContinuousGet } from '@/DataProvider';
+import DataProvider, {
+  type ContinuousGet,
+  type RequestDetails,
+} from '@/DataProvider';
 import type Meta from '@/Meta';
 import type { GenericObject } from '@/utilityTypes';
 
@@ -25,6 +28,7 @@ export default class DemoDataProvider extends DataProvider<
   DemoQuery,
   DemoOptions,
   Meta,
+  DemoItem[],
   DemoInstance
 > {
   static TEST = true;
@@ -38,12 +42,13 @@ export default class DemoDataProvider extends DataProvider<
     return { instanceID: Date.now().toString() };
   }
 
-  handleGet(
+  async handleGet(
     resourceName: string,
-  ):
-    | Promise<DemoItem[] | ContinuousGet<DemoItem>>
-    | DemoItem[]
-    | ContinuousGet<DemoItem> {
+  ): Promise<DemoItem[] | ContinuousGet<DemoItem[]>> {
+    await new Promise((resolve) => {
+      setTimeout(resolve, 1000);
+    });
+
     switch (resourceName) {
       case 'haha':
         return [
@@ -70,5 +75,11 @@ export default class DemoDataProvider extends DataProvider<
 
   handleRemove(): void | Promise<void> {
     throw new Error('Method not implemented.');
+  }
+
+  getEmptyResponse(
+    _requestDetails: RequestDetails<DemoQuery, DemoOptions>,
+  ): DemoItem[] {
+    return [];
   }
 }

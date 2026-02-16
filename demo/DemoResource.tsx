@@ -7,19 +7,21 @@ type HahaItem = DemoItem & {
 };
 
 export default function DemoResource() {
-  const resource = useResource<DemoDataProvider, HahaItem>({
+  const resource = useResource<DemoDataProvider, HahaItem[]>({
     name: 'haha',
     query: undefined,
   });
 
   return (
     <>
+      {resource.isLoading && 'Loading...'}
+
       {resource.data.map((item) => (
         <div key={item.id}>{item.name}</div>
       ))}
 
       <ResourceProvider resource={resource}>
-        <ResourceConsumer<DemoDataProvider, HahaItem>>
+        <ResourceConsumer<DemoDataProvider, HahaItem[]>>
           {(resource) =>
             resource.data.map((item) => <div key={item.id}>{item.name}</div>)
           }
@@ -27,7 +29,7 @@ export default function DemoResource() {
       </ResourceProvider>
 
       <Resource<DemoDataProvider> name="haha" query={undefined}>
-        <ResourceConsumer<DemoDataProvider, HahaItem>>
+        <ResourceConsumer<DemoDataProvider, HahaItem[]>>
           {(resource) =>
             resource.data.map((item) => <div key={item.id}>{item.name}</div>)
           }
