@@ -436,6 +436,8 @@ export default abstract class DataProvider<
     nextContext: ResourceBaseContext<GetResult, Query, Options, MetaType>,
     prevContext: ResourceBaseContext<GetResult, Query, Options, MetaType>,
   ): GetResult {
+    if (nextContext.data == null || prevContext.data == null)
+      return nextContext.data;
     const nextItems = Array.isArray(nextContext.data)
       ? (nextContext.data as Item[])
       : [nextContext.data as Item];
