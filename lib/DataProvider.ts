@@ -21,13 +21,18 @@ export type RequestDetails<Query, Options> = {
   options: Options | undefined;
 };
 
-export type ResourceBaseContext<Item, Query, Options, MetaType extends Meta> = {
+export type ResourceBaseContext<
+  GetResult,
+  Query,
+  Options,
+  MetaType extends Meta,
+> = {
   name: string;
   query: Query;
   options: Options | undefined;
   request: string;
   revision: string;
-  data: Item[];
+  data: GetResult;
   meta: InferSchema<MetaType>;
   error: Error | undefined;
   isEmpty: boolean;
@@ -37,11 +42,12 @@ export type ResourceBaseContext<Item, Query, Options, MetaType extends Meta> = {
 
 export type ResourceContextValue<
   DataProviderI extends GenericDataProvider,
-  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  GetResultI extends InferGetResult<DataProviderI> =
+    InferGetResult<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
   MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
-> = ResourceBaseContext<ItemI, QueryI, OptionsI, MetaTypeI> & {
+> = ResourceBaseContext<GetResultI, QueryI, OptionsI, MetaTypeI> & {
   dataProvider: DataProviderI;
   isLoading: boolean;
   isStale: boolean;
@@ -68,14 +74,13 @@ export type UIPlugin<
 
 export type Persistence = boolean | 'very';
 
-export type GetCallback<Item> = (
-  error: Error | undefined,
-  done: boolean,
-  result: Item[],
-) => void;
+export interface GetCallback<GetResult> {
+  (error: undefined, done: boolean, result: GetResult): void;
+  (error: Error, done: boolean, result: undefined): void;
+}
 
-export type ContinuousGet<Item> = (
-  callback: GetCallback<Item>,
+export type ContinuousGet<GetResult> = (
+  callback: GetCallback<GetResult>,
   /** @deprecated Use the `abortSignal` that is provided by `handleGet` instead. */
   abortSignal: AbortSignalProxy,
 ) => void;
@@ -85,6 +90,7 @@ export default abstract class DataProvider<
   Query,
   Options,
   MetaType extends Meta = Meta,
+  GetResult extends Item | Item[] = Item | Item[],
   CreateData = Item,
   CreateResult = void,
   UpdateData = Item,
@@ -97,6 +103,7 @@ export default abstract class DataProvider<
   readonly _inferQuery!: Query;
   readonly _inferOptions!: Options;
   readonly _inferMetaType!: MetaType;
+  readonly _inferGetResult!: GetResult;
   readonly _inferCreateData!: CreateData;
   readonly _inferCreateResult!: CreateResult;
   readonly _inferUpdateData!: UpdateData;
@@ -159,7 +166,7 @@ export default abstract class DataProvider<
   }
 
   get<
-    ItemI extends Item = Item,
+    GetResultI extends GetResult = GetResult,
     QueryI extends Query = Query,
     OptionsI extends Options = Options,
     MetaTypeI extends MetaType = MetaType,
@@ -169,19 +176,23 @@ export default abstract class DataProvider<
     options?: OptionsI,
     meta?: MetaLike<MetaTypeI>,
     abortSignal?: AbortSignal,
-  ): Promise<ItemI[]> {
+  ): Promise<GetResultI> {
     return new Promise((resolve, reject) =>
-      this.continuousGet<ItemI, QueryI, OptionsI, MetaTypeI>(
+      this.continuousGet<GetResultI, QueryI, OptionsI, MetaTypeI>(
         resource,
         query,
         options,
         meta,
-        (error, done, result) => {
+        (
+          error: Error | undefined,
+          done: boolean,
+          result: GetResultI | undefined,
+        ) => {
           if (error != null) {
             reject(error);
             return;
           }
-          if (done) resolve(result);
+          if (done) resolve(result!);
         },
         abortSignal,
       ),
@@ -189,7 +200,7 @@ export default abstract class DataProvider<
   }
 
   continuousGet<
-    ItemI extends Item = Item,
+    GetResultI extends GetResult = GetResult,
     QueryI extends Query = Query,
     OptionsI extends Options = Options,
     MetaTypeI extends MetaType = MetaType,
@@ -198,7 +209,7 @@ export default abstract class DataProvider<
     query: QueryI,
     options: OptionsI | undefined,
     meta: MetaLike<MetaTypeI> | undefined,
-    callback: GetCallback<ItemI>,
+    callback: GetCallback<GetResultI>,
     abortSignal?: AbortSignal,
   ): void {
     const signal = abortSignal == null ? new AbortSignal() : abortSignal;
@@ -210,17 +221,15 @@ export default abstract class DataProvider<
       const cb = (
         error: Error | undefined,
         done: boolean,
-        result: ItemI[],
+        result: GetResultI | undefined,
       ): void => {
         // prevent updates after completion
         if (signal.locked) return;
         if (error != null || done) {
           signal.lock();
         }
-        if (error != null) callback(error, true, []);
-        else if (result == null) callback(undefined, done, []);
-        else if (Array.isArray(result)) callback(undefined, done, result);
-        else callback(undefined, done, [result]);
+        if (error != null) callback(error, true, undefined);
+        else callback(undefined, done, result!);
       };
 
       const proxy = signal.proxy();
@@ -228,20 +237,20 @@ export default abstract class DataProvider<
       resolve(
         Promise.resolve(
           this.handleGet(resource, query, options, getMeta(meta), proxy) as
-            | Promise<ItemI[] | ContinuousGet<ItemI>>
-            | ItemI[]
-            | ContinuousGet<ItemI>,
+            | Promise<GetResultI | ContinuousGet<GetResultI>>
+            | GetResultI
+            | ContinuousGet<GetResultI>,
         ).then((result) => {
           if (typeof result === 'function') {
             // DEPRECATED!! `proxy` is being passed down here for backwards compatibility only.
-            result(cb, proxy);
+            (result as ContinuousGet<GetResultI>)(cb, proxy);
           } else {
             cb(undefined, true, result);
           }
         }),
       );
     }).catch((e) => {
-      if (!signal.locked) callback(e, true, []);
+      if (!signal.locked) callback(e, true, undefined!);
     });
   }
 
@@ -251,7 +260,10 @@ export default abstract class DataProvider<
     options: Options | undefined,
     meta: MetaType,
     abortSignal: AbortSignalProxy,
-  ): Promise<Item[] | ContinuousGet<Item>> | Item[] | ContinuousGet<Item>;
+  ):
+    | Promise<GetResult | ContinuousGet<GetResult>>
+    | GetResult
+    | ContinuousGet<GetResult>;
 
   create<
     CreateResultI extends CreateResult = CreateResult,
@@ -389,11 +401,15 @@ export default abstract class DataProvider<
     return deepEquals(nextRequestDetails, prevRequestDetails);
   }
 
+  getEmptyResponse(_requestDetails: RequestDetails<Query, Options>): GetResult {
+    return undefined as GetResult;
+  }
+
   shouldPersist(
     nextRequestDetails: RequestDetails<Query, Options>,
     prevRequestDetails: RequestDetails<Query, Options>,
     persistent: Persistence,
-    _context: ResourceBaseContext<Item, Query, Options, MetaType>,
+    _context: ResourceBaseContext<GetResult, Query, Options, MetaType>,
   ): boolean {
     return (
       persistent === 'very' ||
@@ -410,26 +426,32 @@ export default abstract class DataProvider<
   }
 
   transition(
-    nextContext: ResourceBaseContext<Item, Query, Options, MetaType>,
-    _prevContext: ResourceBaseContext<Item, Query, Options, MetaType>,
-  ): Item[] {
+    nextContext: ResourceBaseContext<GetResult, Query, Options, MetaType>,
+    _prevContext: ResourceBaseContext<GetResult, Query, Options, MetaType>,
+  ): GetResult {
     return nextContext.data;
   }
 
   recycleItems(
-    nextContext: ResourceBaseContext<Item, Query, Options, MetaType>,
-    prevContext: ResourceBaseContext<Item, Query, Options, MetaType>,
-  ): Item[] {
+    nextContext: ResourceBaseContext<GetResult, Query, Options, MetaType>,
+    prevContext: ResourceBaseContext<GetResult, Query, Options, MetaType>,
+  ): GetResult {
+    const nextItems = Array.isArray(nextContext.data)
+      ? (nextContext.data as Item[])
+      : [nextContext.data as Item];
+    const prevItems = Array.isArray(prevContext.data)
+      ? (prevContext.data as Item[])
+      : [prevContext.data as Item];
     const prevMapping: { [id: string]: Item } = {};
-    if (nextContext.data.length > 0) {
-      prevContext.data.forEach((item) => {
+    if (nextItems.length > 0) {
+      prevItems.forEach((item) => {
         const id = this.getItemIdentifier(item);
         if (id != null) prevMapping[id] = item;
       });
     }
     let result: Item[];
-    if (prevContext.data.length > 0) {
-      result = nextContext.data.map((nextItem) => {
+    if (prevItems.length > 0) {
+      result = nextItems.map((nextItem) => {
         const id = this.getItemIdentifier(nextItem);
         if (
           id != null &&
@@ -441,18 +463,21 @@ export default abstract class DataProvider<
         return nextItem;
       });
     } else {
-      result = nextContext.data;
+      result = nextItems;
+    }
+    if (!Array.isArray(nextContext.data)) {
+      return result[0] as GetResult;
     }
     if (
-      prevContext.data.length === result.length &&
+      prevItems.length === result.length &&
       result.reduce(
-        (sum, item, i) => sum && Object.is(prevContext.data[i], item),
+        (sum, item, i) => sum && Object.is(prevItems[i], item),
         true,
       )
     ) {
-      return prevContext.data;
+      return prevItems as GetResult;
     }
-    return result;
+    return result as GetResult;
   }
 }
 
@@ -474,10 +499,11 @@ export type DataProviderImplementation<
       abortSignal: AbortSignalProxy,
     ):
       | Promise<
-          InferItem<DataProviderI>[] | ContinuousGet<InferItem<DataProviderI>>
+          | InferGetResult<DataProviderI>
+          | ContinuousGet<InferGetResult<DataProviderI>>
         >
-      | InferItem<DataProviderI>[]
-      | ContinuousGet<InferItem<DataProviderI>>;
+      | InferGetResult<DataProviderI>
+      | ContinuousGet<InferGetResult<DataProviderI>>;
 
     handleCreate(
       resource: string,
@@ -530,6 +556,7 @@ export type GenericDataProvider = DataProvider<
   unknown,
   unknown,
   unknown,
+  unknown,
   unknown
 >;
 
@@ -550,6 +577,9 @@ export type InferOptions<DataProviderI extends GenericDataProvider> =
 
 export type InferMetaType<DataProviderI extends GenericDataProvider> =
   DataProviderI['_inferMetaType'];
+
+export type InferGetResult<DataProviderI extends GenericDataProvider> =
+  DataProviderI['_inferGetResult'];
 
 export type InferCreateData<DataProviderI extends GenericDataProvider> =
   DataProviderI['_inferCreateData'];

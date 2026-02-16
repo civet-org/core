@@ -9,7 +9,7 @@ import {
 import AbortSignal from './AbortSignal';
 import type {
   GenericDataProvider,
-  InferItem,
+  InferGetResult,
   InferMetaType,
   InferOptions,
   InferQuery,
@@ -24,7 +24,8 @@ import uniqueIdentifier from './uniqueIdentifier';
 
 type BaseState<
   DataProviderI extends GenericDataProvider,
-  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  GetResultI extends InferGetResult<DataProviderI> =
+    InferGetResult<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
   MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
@@ -34,13 +35,14 @@ type BaseState<
   request: string;
   revision: string;
   isLoading: boolean;
-  value: ResourceBaseContext<ItemI, QueryI, OptionsI, MetaTypeI>;
+  value: ResourceBaseContext<GetResultI, QueryI, OptionsI, MetaTypeI>;
   persistent: Persistence;
 };
 
 type RequestInstruction<
   DataProviderI extends GenericDataProvider,
-  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  GetResultI extends InferGetResult<DataProviderI> =
+    InferGetResult<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
   MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
@@ -49,19 +51,20 @@ type RequestInstruction<
   requestDetails: RequestDetails<QueryI, OptionsI>;
   request: string;
   revision: string;
-  value: ResourceBaseContext<ItemI, QueryI, OptionsI, MetaTypeI>;
+  value: ResourceBaseContext<GetResultI, QueryI, OptionsI, MetaTypeI>;
 };
 
 type State<
   DataProviderI extends GenericDataProvider,
-  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  GetResultI extends InferGetResult<DataProviderI> =
+    InferGetResult<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
   MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
-> = BaseState<DataProviderI, ItemI, QueryI, OptionsI, MetaTypeI> & {
+> = BaseState<DataProviderI, GetResultI, QueryI, OptionsI, MetaTypeI> & {
   requestInstruction: RequestInstruction<
     DataProviderI,
-    ItemI,
+    GetResultI,
     QueryI,
     OptionsI,
     MetaTypeI
@@ -73,15 +76,16 @@ type State<
  **/
 function createRequestInstruction<
   DataProviderI extends GenericDataProvider,
-  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  GetResultI extends InferGetResult<DataProviderI> =
+    InferGetResult<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
   MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
 >(
   state:
-    | BaseState<DataProviderI, ItemI, QueryI, OptionsI, MetaTypeI>
-    | State<DataProviderI, ItemI, QueryI, OptionsI, MetaTypeI>,
-): State<DataProviderI, ItemI, QueryI, OptionsI, MetaTypeI> {
+    | BaseState<DataProviderI, GetResultI, QueryI, OptionsI, MetaTypeI>
+    | State<DataProviderI, GetResultI, QueryI, OptionsI, MetaTypeI>,
+): State<DataProviderI, GetResultI, QueryI, OptionsI, MetaTypeI> {
   return {
     ...state,
     requestInstruction: {
@@ -96,7 +100,8 @@ function createRequestInstruction<
 
 type Action<
   DataProviderI extends GenericDataProvider,
-  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  GetResultI extends InferGetResult<DataProviderI> =
+    InferGetResult<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
   MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
@@ -118,7 +123,7 @@ type Action<
       type: 'update-data';
       request: string;
       revision: string;
-      value: ResourceBaseContext<ItemI, QueryI, OptionsI, MetaTypeI>;
+      value: ResourceBaseContext<GetResultI, QueryI, OptionsI, MetaTypeI>;
     };
 
 /**
@@ -126,14 +131,15 @@ type Action<
  */
 function reducer<
   DataProviderI extends GenericDataProvider,
-  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  GetResultI extends InferGetResult<DataProviderI> =
+    InferGetResult<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
   MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
 >(
-  state: State<DataProviderI, ItemI, QueryI, OptionsI, MetaTypeI>,
-  action: Action<DataProviderI, ItemI, QueryI, OptionsI, MetaTypeI>,
-): State<DataProviderI, ItemI, QueryI, OptionsI, MetaTypeI> {
+  state: State<DataProviderI, GetResultI, QueryI, OptionsI, MetaTypeI>,
+  action: Action<DataProviderI, GetResultI, QueryI, OptionsI, MetaTypeI>,
+): State<DataProviderI, GetResultI, QueryI, OptionsI, MetaTypeI> {
   switch (action.type) {
     // Creates a new request and instructs the resource to fetch data.
     case 'next-request': {
@@ -157,7 +163,7 @@ function reducer<
         );
       return createRequestInstruction<
         DataProviderI,
-        ItemI,
+        GetResultI,
         QueryI,
         OptionsI,
         MetaTypeI
@@ -175,7 +181,9 @@ function reducer<
               options: nextRequestDetails.options,
               request: nextRequest,
               revision: nextRevision,
-              data: [],
+              data: state.dataProvider.getEmptyResponse(
+                nextRequestDetails,
+              ) as GetResultI,
               meta: {},
               error: undefined,
               isEmpty: !!nextRequestDetails.empty,
@@ -193,7 +201,7 @@ function reducer<
       notify({ request: state.request, revision: nextRevision });
       return createRequestInstruction<
         DataProviderI,
-        ItemI,
+        GetResultI,
         QueryI,
         OptionsI,
         MetaTypeI
@@ -235,21 +243,24 @@ function reducer<
  */
 function fetchData<
   DataProviderI extends GenericDataProvider,
-  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  GetResultI extends InferGetResult<DataProviderI> =
+    InferGetResult<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
   MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
 >(
   requestInstruction: RequestInstruction<
     DataProviderI,
-    ItemI,
+    GetResultI,
     QueryI,
     OptionsI,
     MetaTypeI
   >,
   instance: InferInstance<InferMetaType<DataProviderI>>,
   abortSignal: AbortSignal,
-  dispatch: Dispatch<Action<DataProviderI, ItemI, QueryI, OptionsI, MetaTypeI>>,
+  dispatch: Dispatch<
+    Action<DataProviderI, GetResultI, QueryI, OptionsI, MetaTypeI>
+  >,
 ): void {
   const { dataProvider, requestDetails, request, revision, value } =
     requestInstruction;
@@ -257,13 +268,13 @@ function fetchData<
   const meta = new Meta({ ...value.meta }, instance) as MetaTypeI;
 
   let promise: Promise<
-    ResourceBaseContext<ItemI, QueryI, OptionsI, MetaTypeI>
+    ResourceBaseContext<GetResultI, QueryI, OptionsI, MetaTypeI>
   > = Promise.resolve(value);
 
   const callback = (
     error: Error | undefined,
     done: boolean,
-    data: ItemI[],
+    data: GetResultI | undefined,
   ): void => {
     promise = promise.then((prevValue) => {
       try {
@@ -275,24 +286,32 @@ function fetchData<
             isIncomplete: false,
           };
         } else {
-          const context = {
+          const context: ResourceBaseContext<
+            GetResultI,
+            QueryI,
+            OptionsI,
+            MetaTypeI
+          > = {
             name: requestDetails.name,
             query: requestDetails.query,
             options: requestDetails.options,
             request,
             revision,
-            data,
+            data: data!,
             meta: meta.commit(prevValue.meta),
             error: undefined,
             isEmpty: false,
             isIncomplete: !done,
             isInitial: !!prevValue.isInitial && !done,
           };
-          context.data = dataProvider.transition(context, prevValue) as ItemI[];
+          context.data = dataProvider.transition(
+            context,
+            prevValue,
+          ) as GetResultI;
           context.data = dataProvider.recycleItems(
             context,
             prevValue,
-          ) as ItemI[];
+          ) as GetResultI;
           nextValue = context;
         }
 
@@ -305,7 +324,7 @@ function fetchData<
     });
   };
 
-  dataProvider.continuousGet<ItemI, QueryI, OptionsI, MetaTypeI>(
+  dataProvider.continuousGet<GetResultI, QueryI, OptionsI, MetaTypeI>(
     requestDetails.name,
     requestDetails.query,
     requestDetails.options,
@@ -324,7 +343,8 @@ function fetchData<
  */
 export default function useResource<
   DataProviderI extends GenericDataProvider,
-  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  GetResultI extends InferGetResult<DataProviderI> =
+    InferGetResult<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
   MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
@@ -350,7 +370,13 @@ export default function useResource<
   /** Whether stale data should be retained during the next request - this only applies if name did not change, unless set to "very" */
   persistent?: Persistence;
   [rest: string]: unknown;
-}): ResourceContextValue<DataProviderI, ItemI, QueryI, OptionsI, MetaTypeI> {
+}): ResourceContextValue<
+  DataProviderI,
+  GetResultI,
+  QueryI,
+  OptionsI,
+  MetaTypeI
+> {
   const configContext = useConfigContext<DataProviderI>();
   const currentDataProvider = dataProviderProp || configContext.dataProvider!;
 
@@ -368,7 +394,7 @@ export default function useResource<
     const revision = uniqueIdentifier();
     return createRequestInstruction<
       DataProviderI,
-      ItemI,
+      GetResultI,
       QueryI,
       OptionsI,
       MetaTypeI
@@ -384,7 +410,9 @@ export default function useResource<
         options: nextRequestDetails.options,
         request,
         revision,
-        data: [],
+        data: currentDataProvider?.getEmptyResponse(
+          nextRequestDetails,
+        ) as GetResultI,
         meta: {},
         error: undefined,
         isEmpty: !!nextRequestDetails.empty,
@@ -466,7 +494,7 @@ export default function useResource<
     const abortSignal = new AbortSignal();
 
     // Start fetching data.
-    fetchData<DataProviderI, ItemI, QueryI, OptionsI, MetaTypeI>(
+    fetchData<DataProviderI, GetResultI, QueryI, OptionsI, MetaTypeI>(
       requestInstruction,
       instance,
       abortSignal,
@@ -495,5 +523,11 @@ export default function useResource<
   return dataProvider.contextPlugins.reduce(
     (result, fn) => fn(result, rest),
     context as ResourceContextValue<GenericDataProvider>,
-  ) as ResourceContextValue<DataProviderI, ItemI, QueryI, OptionsI, MetaTypeI>;
+  ) as ResourceContextValue<
+    DataProviderI,
+    GetResultI,
+    QueryI,
+    OptionsI,
+    MetaTypeI
+  >;
 }

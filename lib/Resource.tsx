@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import type {
   GenericDataProvider,
-  InferItem,
+  InferGetResult,
   InferMetaType,
   InferOptions,
   InferQuery,
@@ -21,7 +21,7 @@ import useResource from './useResource';
  */
 export default function Resource<
   DataProviderI extends GenericDataProvider,
-  ItemI extends InferItem<DataProviderI> = InferItem<DataProviderI>,
+  GetResultI extends InferGetResult<DataProviderI> = InferGetResult<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
   MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
@@ -52,7 +52,7 @@ export default function Resource<
 }) {
   const context = useResource<
     DataProviderI,
-    ItemI,
+    GetResultI,
     QueryI,
     OptionsI,
     MetaTypeI

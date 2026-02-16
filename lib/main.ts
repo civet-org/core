@@ -26,6 +26,7 @@ export type {
   GetCallback,
   InferCreateData,
   InferCreateResult,
+  InferGetResult,
   InferItem,
   InferMetaType,
   InferOptions,
