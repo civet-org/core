@@ -192,7 +192,16 @@ export default abstract class DataProvider<
             reject(error);
             return;
           }
-          if (done) resolve(result!);
+          if (done)
+            resolve(
+              result ??
+                (this.getEmptyResponse({
+                  name: resource,
+                  query,
+                  empty: false,
+                  options,
+                }) as GetResultI),
+            );
         },
         abortSignal,
       ),
@@ -229,7 +238,18 @@ export default abstract class DataProvider<
           signal.lock();
         }
         if (error != null) callback(error, true, undefined);
-        else callback(undefined, done, result!);
+        else
+          callback(
+            undefined,
+            done,
+            result ??
+              (this.getEmptyResponse({
+                name: resource,
+                query,
+                empty: false,
+                options,
+              }) as GetResultI),
+          );
       };
 
       const proxy = signal.proxy();
