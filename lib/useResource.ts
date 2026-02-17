@@ -17,6 +17,8 @@ import type {
   RequestDetails,
   ResourceBaseContext,
   ResourceContextValue,
+  InferContextPluginProps,
+  InferContextPluginTypes,
 } from './DataProvider';
 import Meta, { type InferInstance } from './Meta';
 import { useConfigContext } from './context';
@@ -361,14 +363,14 @@ export default function useResource<
   options?: OptionsI;
   /** Whether stale data should be retained during the next request - this only applies if name did not change, unless set to "very" */
   persistent?: Persistence;
-  [rest: string]: unknown;
-}): ResourceContextValue<
+} & InferContextPluginProps<DataProviderI>): ResourceContextValue<
   DataProviderI,
   ResponseI,
   QueryI,
   OptionsI,
   MetaTypeI
-> {
+> &
+  InferContextPluginTypes<DataProviderI> {
   const configContext = useConfigContext<DataProviderI>();
   const currentDataProvider = dataProviderProp || configContext.dataProvider!;
 
@@ -513,14 +515,14 @@ export default function useResource<
   );
 
   // Apply context plugins and return the final context.
-  return dataProvider.contextPlugins.reduce(
-    (result, fn) => fn(result, rest),
-    context as ResourceContextValue<GenericDataProvider>,
-  ) as ResourceContextValue<
+  return dataProvider.contextPlugins.reduce<
+    ResourceContextValue<GenericDataProvider>
+  >((result, fn) => fn(result, rest), context) as ResourceContextValue<
     DataProviderI,
     ResponseI,
     QueryI,
     OptionsI,
     MetaTypeI
-  >;
+  > &
+    InferContextPluginTypes<DataProviderI>;
 }

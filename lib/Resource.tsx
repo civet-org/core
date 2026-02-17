@@ -6,7 +6,8 @@ import type {
   InferOptions,
   InferQuery,
   Persistence,
-  ResourceContextValue,
+  InferUIPluginProps,
+  InferContextPluginProps,
 } from './DataProvider';
 import ResourceProvider from './ResourceProvider';
 import useResource from './useResource';
@@ -48,8 +49,8 @@ export default function Resource<
   /** Whether stale data should be retained during the next request - this only applies if name did not change, unless set to "very" */
   persistent?: Persistence;
   children?: ReactNode;
-  [rest: string]: unknown;
-}) {
+} & InferContextPluginProps<DataProviderI> &
+  InferUIPluginProps<DataProviderI>) {
   const context = useResource<
     DataProviderI,
     ResponseI,
@@ -66,14 +67,12 @@ export default function Resource<
     ...rest,
   });
 
-  return context.dataProvider.uiPlugins.reduceRight(
-    (next, Plugin) => (result) => (
-      <Plugin {...rest} context={result}>
-        {next}
-      </Plugin>
-    ),
-    (result: ResourceContextValue<GenericDataProvider>) => (
-      <ResourceProvider resource={result}>{children}</ResourceProvider>
-    ),
-  )(context);
+  return (
+    <ResourceProvider<DataProviderI, ResponseI, QueryI, OptionsI, MetaTypeI>
+      {...rest}
+      resource={context}
+    >
+      {children}
+    </ResourceProvider>
+  );
 }

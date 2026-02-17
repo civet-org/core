@@ -1,51 +1,104 @@
 import DataProvider, {
+  type ContextPlugin,
   type GenericDataProviderImplementation,
+  type UIPlugin,
 } from './DataProvider';
 import type { Constructor } from './utilityTypes';
 
-export type DataProviderImplementationWithPlugin<
+type InstanceTypeExtension<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  BaseClass extends new (...args: any) => any,
+  InstanceTypeExtension,
+> = Pick<BaseClass, keyof BaseClass> &
+  Constructor<
+    ConstructorParameters<BaseClass>,
+    InstanceType<BaseClass> & InstanceTypeExtension
+  >;
+
+type PluginBaseDataProvider<
   BaseDataProvider extends GenericDataProviderImplementation,
-  PluginTypes,
 > = Pick<BaseDataProvider, keyof BaseDataProvider> &
   Constructor<
-    ConstructorParameters<BaseDataProvider>,
-    InstanceType<BaseDataProvider> & PluginTypes
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    any[],
+    InstanceType<BaseDataProvider>
   >;
+
+type PluginExtendedDataProvider<
+  BaseDataProvider extends GenericDataProviderImplementation,
+  PluginTypes,
+> = InstanceTypeExtension<
+  PluginBaseDataProvider<BaseDataProvider>,
+  PluginTypes
+>;
+
+export type DataProviderImplementationWithPlugin<
+  BaseDataProvider extends GenericDataProviderImplementation,
+  DataProviderPluginTypes,
+  ContextPluginProps,
+  ContextPluginTypes,
+  UIPluginProps,
+  UIPluginTypes,
+> = InstanceTypeExtension<
+  BaseDataProvider,
+  {
+    _inferContextPluginProps: ContextPluginProps;
+    _inferContextPluginTypes: ContextPluginTypes;
+    _inferUIPluginProps: UIPluginProps;
+    _inferUIPluginTypes: UIPluginTypes;
+  } & DataProviderPluginTypes
+>;
 
 export type DataProviderPlugin<
   BaseDataProvider extends GenericDataProviderImplementation,
-  PluginTypes,
+  DataProviderPluginTypes,
+  ContextPluginProps,
+  ContextPluginTypes,
+  UIPluginProps,
+  UIPluginTypes,
 > = <BaseDataProviderT extends BaseDataProvider>(
   baseDataProviderClass: BaseDataProviderT,
-) => DataProviderImplementationWithPlugin<BaseDataProviderT, PluginTypes>;
+) => DataProviderImplementationWithPlugin<
+  BaseDataProviderT,
+  DataProviderPluginTypes,
+  ContextPluginProps,
+  ContextPluginTypes,
+  UIPluginProps,
+  UIPluginTypes
+>;
 
 export default function createPlugin<
   BaseDataProvider extends GenericDataProviderImplementation,
-  PluginTypes,
+  DataProviderPluginTypes = unknown,
+  ContextPluginProps = unknown,
+  ContextPluginTypes = unknown,
+  UIPluginProps = unknown,
+  UIPluginTypes = unknown,
 >(
   plugin: (
-    baseDataProviderClass: Pick<BaseDataProvider, keyof BaseDataProvider> &
-      Constructor<
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        any[],
-        InstanceType<BaseDataProvider>
-      >,
-  ) => DataProviderImplementationWithPlugin<
-    Pick<BaseDataProvider, keyof BaseDataProvider> &
-      Constructor<
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        any[],
-        InstanceType<BaseDataProvider>
-      >,
-    PluginTypes
-  >,
-): DataProviderPlugin<BaseDataProvider, PluginTypes> {
+    baseDataProviderClass: PluginBaseDataProvider<BaseDataProvider>,
+  ) => PluginExtendedDataProvider<BaseDataProvider, DataProviderPluginTypes>,
+): DataProviderPlugin<
+  BaseDataProvider,
+  DataProviderPluginTypes,
+  ContextPluginProps,
+  ContextPluginTypes,
+  UIPluginProps,
+  UIPluginTypes
+> {
   if (typeof plugin !== 'function') {
     throw new Error('No valid plugin definition specified');
   }
   return <BaseDataProviderT extends BaseDataProvider>(
     baseDataProviderClass: BaseDataProviderT,
-  ): DataProviderImplementationWithPlugin<BaseDataProviderT, PluginTypes> => {
+  ): DataProviderImplementationWithPlugin<
+    BaseDataProviderT,
+    DataProviderPluginTypes,
+    ContextPluginProps,
+    ContextPluginTypes,
+    UIPluginProps,
+    UIPluginTypes
+  > => {
     if (
       !Object.prototype.isPrototypeOf.call(DataProvider, baseDataProviderClass)
     ) {
@@ -54,15 +107,14 @@ export default function createPlugin<
       );
     }
 
-    const classCopy = class extends baseDataProviderClass {} as unknown as Pick<
-      BaseDataProvider,
-      keyof BaseDataProvider
-    > &
-      Constructor<
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        any[],
-        InstanceType<BaseDataProvider>
-      >;
+    const classCopy = class extends baseDataProviderClass {
+      readonly contextPlugins: ContextPlugin[] = [
+        ...baseDataProviderClass.prototype.contextPlugins,
+      ];
+      readonly uiPlugins: UIPlugin[] = [
+        ...baseDataProviderClass.prototype.uiPlugins,
+      ];
+    } as unknown as PluginBaseDataProvider<BaseDataProvider>;
 
     const result = plugin(classCopy);
     if (result == null) {
@@ -72,7 +124,11 @@ export default function createPlugin<
     }
     return result as unknown as DataProviderImplementationWithPlugin<
       BaseDataProviderT,
-      PluginTypes
+      DataProviderPluginTypes,
+      ContextPluginProps,
+      ContextPluginTypes,
+      UIPluginProps,
+      UIPluginTypes
     >;
   };
 }

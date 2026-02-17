@@ -6,8 +6,11 @@ import type {
   InferOptions,
   InferQuery,
   ResourceContextValue,
+  InferContextPluginTypes,
+  InferUIPluginProps,
+  InferUIPluginTypes,
 } from './DataProvider';
-import { ResourceContext } from './context';
+import { ResourceContextProvider } from './context';
 
 export default function ResourceProvider<
   DataProviderI extends GenericDataProvider,
@@ -18,18 +21,49 @@ export default function ResourceProvider<
 >({
   resource,
   children,
-}: PropsWithChildren<{
-  resource: ResourceContextValue<
-    DataProviderI,
-    ResponseI,
-    QueryI,
-    OptionsI,
-    MetaTypeI
-  >;
-}>): ReactNode {
-  return (
-    <ResourceContext.Provider value={resource}>
-      {children}
-    </ResourceContext.Provider>
-  );
+  ...rest
+}: PropsWithChildren<
+  {
+    resource: ResourceContextValue<
+      DataProviderI,
+      ResponseI,
+      QueryI,
+      OptionsI,
+      MetaTypeI
+    > &
+      InferContextPluginTypes<DataProviderI>;
+  } & InferUIPluginProps<DataProviderI>
+>): ReactNode {
+  return resource.dataProvider.uiPlugins.reduceRight<
+    (context: ResourceContextValue<GenericDataProvider>) => ReactNode
+  >(
+    (next, Plugin) => (result) => (
+      <Plugin {...rest} context={result}>
+        {next}
+      </Plugin>
+    ),
+    (result) => (
+      <ResourceContextProvider<
+        DataProviderI,
+        ResponseI,
+        QueryI,
+        OptionsI,
+        MetaTypeI
+      >
+        value={
+          result as ResourceContextValue<
+            DataProviderI,
+            ResponseI,
+            QueryI,
+            OptionsI,
+            MetaTypeI
+          > &
+            InferContextPluginTypes<DataProviderI> &
+            InferUIPluginTypes<DataProviderI>
+        }
+      >
+        {children}
+      </ResourceContextProvider>
+    ),
+  )(resource);
 }
