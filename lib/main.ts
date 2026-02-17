@@ -20,6 +20,7 @@ export { default as DataProvider, isDataProvider } from './DataProvider';
 export type {
   ContextPlugin,
   ContinuousGet,
+  DataProviderExtend,
   DataProviderImplementation,
   GenericDataProvider,
   GenericDataProviderImplementation,
