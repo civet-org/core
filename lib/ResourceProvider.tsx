@@ -1,7 +1,7 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import type {
   GenericDataProvider,
-  InferGetResult,
+  InferResponse,
   InferMetaType,
   InferOptions,
   InferQuery,
@@ -11,8 +11,7 @@ import { ResourceContext } from './context';
 
 export default function ResourceProvider<
   DataProviderI extends GenericDataProvider,
-  GetResultI extends InferGetResult<DataProviderI> =
-    InferGetResult<DataProviderI>,
+  ResponseI extends InferResponse<DataProviderI> = InferResponse<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
   MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
@@ -22,7 +21,7 @@ export default function ResourceProvider<
 }: PropsWithChildren<{
   resource: ResourceContextValue<
     DataProviderI,
-    GetResultI,
+    ResponseI,
     QueryI,
     OptionsI,
     MetaTypeI

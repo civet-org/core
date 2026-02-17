@@ -7,7 +7,7 @@ import {
 } from 'react';
 import type {
   GenericDataProvider,
-  InferGetResult,
+  InferResponse,
   InferMetaType,
   InferOptions,
   InferQuery,
@@ -39,7 +39,7 @@ export const ResourceContext = createContext<
   options: undefined,
   request: '',
   revision: '',
-  data: [],
+  data: undefined,
   meta: {},
   error: undefined,
   isEmpty: true,
@@ -56,8 +56,8 @@ export const ResourceConsumer =
   ResourceContext.Consumer as ExoticComponent<GenericDataProvider> & {
     <
       DataProviderI extends GenericDataProvider,
-      GetResultI extends InferGetResult<DataProviderI> =
-        InferGetResult<DataProviderI>,
+      ResponseI extends InferResponse<DataProviderI> =
+        InferResponse<DataProviderI>,
       QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
       OptionsI extends InferOptions<DataProviderI> =
         InferOptions<DataProviderI>,
@@ -67,7 +67,7 @@ export const ResourceConsumer =
       props: ConsumerProps<
         ResourceContextValue<
           DataProviderI,
-          GetResultI,
+          ResponseI,
           QueryI,
           OptionsI,
           MetaTypeI
@@ -77,15 +77,14 @@ export const ResourceConsumer =
   };
 export const useResourceContext = <
   DataProviderI extends GenericDataProvider,
-  GetResultI extends InferGetResult<DataProviderI> =
-    InferGetResult<DataProviderI>,
+  ResponseI extends InferResponse<DataProviderI> = InferResponse<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
   MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
 >() =>
   useContext(ResourceContext) as ResourceContextValue<
     DataProviderI,
-    GetResultI,
+    ResponseI,
     QueryI,
     OptionsI,
     MetaTypeI

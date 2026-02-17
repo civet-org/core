@@ -2,7 +2,7 @@ import type { AbortSignalProxy } from '@/AbortSignal';
 import type {
   ContinuousGet,
   GenericDataProviderImplementation,
-  InferGetResult,
+  InferResponse,
   InferMetaType,
   InferOptions,
   InferQuery,
@@ -27,9 +27,9 @@ const demoPlugin = createPlugin<
         meta: InferMetaType<this>,
         abortSignal: AbortSignalProxy,
       ):
-        | Promise<InferGetResult<this> | ContinuousGet<InferGetResult<this>>>
-        | InferGetResult<this>
-        | ContinuousGet<InferGetResult<this>> {
+        | Promise<InferResponse<this> | ContinuousGet<InferResponse<this>>>
+        | InferResponse<this>
+        | ContinuousGet<InferResponse<this>> {
         return super.handleGet(resource, query, options, meta, abortSignal);
       }
     },

@@ -27,9 +27,8 @@ export default class DemoDataProvider extends DataProvider<
   DemoItem,
   DemoQuery,
   DemoOptions,
-  Meta,
-  DemoItem[],
-  DemoInstance
+  Meta<GenericObject, DemoInstance>,
+  DemoItem[]
 > {
   static TEST = true;
 
@@ -59,22 +58,6 @@ export default class DemoDataProvider extends DataProvider<
       default:
         return [{ id: 'a' }, { id: 'b' }];
     }
-  }
-
-  handleCreate(): void | Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-
-  handleUpdate(): void | Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-
-  handlePatch(): void | Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-
-  handleRemove(): void | Promise<void> {
-    throw new Error('Method not implemented.');
   }
 
   getEmptyResponse(
