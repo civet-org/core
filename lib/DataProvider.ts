@@ -80,34 +80,53 @@ export interface GetCallback<Response> {
 
 export type ContinuousGet<Response> = (callback: GetCallback<Response>) => void;
 
+export type DataProviderExtend = {
+  context: <PluginProps, PluginTypes>(
+    plugin: ContextPlugin<PluginProps, PluginTypes>,
+  ) => void;
+  ui: <PluginProps, PluginTypes>(
+    plugin: UIPlugin<PluginProps, PluginTypes>,
+  ) => void;
+};
+
 export default abstract class DataProvider<
   Item,
   Query,
   Options,
   MetaType extends Meta = Meta,
   Response extends Item | Item[] = Item | Item[],
+  ContextPluginProps = unknown,
+  ContextPluginTypes = unknown,
+  UIPluginProps = unknown,
+  UIPluginTypes = unknown,
 > {
   readonly _inferItem!: Item;
   readonly _inferQuery!: Query;
   readonly _inferOptions!: Options;
   readonly _inferMetaType!: MetaType;
   readonly _inferResponse!: Response;
+  readonly _inferContextPluginProps!: ContextPluginProps;
+  readonly _inferContextPluginTypes!: ContextPluginTypes;
+  readonly _inferUIPluginProps!: UIPluginProps;
+  readonly _inferUIPluginTypes!: UIPluginTypes;
 
   notifier = new ChannelNotifier();
-  readonly contextPlugins: ContextPlugin<unknown, unknown>[] = [];
-  readonly uiPlugins: UIPlugin<unknown, unknown>[] = [];
+  readonly contextPlugins: ContextPlugin[] = [];
+  readonly uiPlugins: UIPlugin[] = [];
 
   constructor() {
-    const contextPlugins: ContextPlugin<unknown, unknown>[] = [];
-    const uiPlugins: UIPlugin<unknown, unknown>[] = [];
+    const contextPlugins: ContextPlugin[] = [];
+    const uiPlugins: UIPlugin[] = [];
     this.extend({
       context: (plugin) => {
         const plugins = contextPlugins;
-        if (plugin != null && !plugins.includes(plugin)) plugins.push(plugin);
+        if (plugin != null && !plugins.includes(plugin as ContextPlugin))
+          plugins.push(plugin as ContextPlugin);
       },
       ui: (plugin) => {
         const plugins = uiPlugins;
-        if (plugin != null && !plugins.includes(plugin)) plugins.push(plugin);
+        if (plugin != null && !plugins.includes(plugin as UIPlugin))
+          plugins.push(plugin as UIPlugin);
       },
     });
     Object.defineProperties(this, {
@@ -126,10 +145,7 @@ export default abstract class DataProvider<
     });
   }
 
-  extend(_extend: {
-    context: (plugin: ContextPlugin<unknown, unknown>) => void;
-    ui: (plugin: UIPlugin<unknown, unknown>) => void;
-  }): void {}
+  extend(_extend: DataProviderExtend): void {}
 
   createInstance(): InferInstance<MetaType> | undefined {
     return undefined;
@@ -387,6 +403,10 @@ export type GenericDataProvider = DataProvider<
   unknown,
   unknown,
   Meta,
+  unknown,
+  unknown,
+  unknown,
+  unknown,
   unknown
 >;
 
@@ -410,3 +430,15 @@ export type InferMetaType<DataProviderI extends GenericDataProvider> =
 
 export type InferResponse<DataProviderI extends GenericDataProvider> =
   DataProviderI['_inferResponse'];
+
+export type InferContextPluginProps<DataProviderI extends GenericDataProvider> =
+  DataProviderI['_inferContextPluginProps'];
+
+export type InferContextPluginTypes<DataProviderI extends GenericDataProvider> =
+  DataProviderI['_inferContextPluginTypes'];
+
+export type InferUIPluginProps<DataProviderI extends GenericDataProvider> =
+  DataProviderI['_inferUIPluginProps'];
+
+export type InferUIPluginTypes<DataProviderI extends GenericDataProvider> =
+  DataProviderI['_inferUIPluginTypes'];
