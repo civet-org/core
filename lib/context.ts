@@ -42,7 +42,7 @@ export const ResourceContext = createContext<
   data: undefined,
   meta: {},
   error: undefined,
-  isEmpty: true,
+  isDisabled: true,
   isIncomplete: false,
   isInitial: true,
   dataProvider: undefined as unknown as GenericDataProvider,

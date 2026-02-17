@@ -17,7 +17,7 @@ const getMeta = <MetaI extends Meta>(
 export type RequestDetails<Query, Options> = {
   name: string;
   query: Query;
-  empty: boolean;
+  disabled: boolean;
   options: Options | undefined;
 };
 
@@ -35,7 +35,7 @@ export type ResourceBaseContext<
   data: Response;
   meta: InferSchema<MetaType>;
   error: Error | undefined;
-  isEmpty: boolean;
+  isDisabled: boolean;
   isIncomplete: boolean;
   isInitial: boolean;
 };
@@ -176,10 +176,10 @@ export default abstract class DataProvider<
           if (done)
             resolve(
               result ??
-                (this.getEmptyResponse({
+                (this.createEmptyResponse({
                   name: resource,
                   query,
-                  empty: false,
+                  disabled: false,
                   options,
                 }) as ResponseI),
             );
@@ -224,10 +224,10 @@ export default abstract class DataProvider<
             undefined,
             done,
             result ??
-              (this.getEmptyResponse({
+              (this.createEmptyResponse({
                 name: resource,
                 query,
-                empty: false,
+                disabled: false,
                 options,
               }) as ResponseI),
           );
@@ -272,7 +272,9 @@ export default abstract class DataProvider<
     return deepEquals(nextRequestDetails, prevRequestDetails);
   }
 
-  getEmptyResponse(_requestDetails: RequestDetails<Query, Options>): Response {
+  createEmptyResponse(
+    _requestDetails: RequestDetails<Query, Options>,
+  ): Response {
     return undefined as Response;
   }
 

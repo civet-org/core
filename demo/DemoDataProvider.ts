@@ -60,7 +60,7 @@ export default class DemoDataProvider extends DataProvider<
     }
   }
 
-  getEmptyResponse(
+  createEmptyResponse(
     _requestDetails: RequestDetails<DemoQuery, DemoOptions>,
   ): DemoItem[] {
     return [];

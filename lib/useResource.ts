@@ -148,7 +148,7 @@ function reducer<
         isPersistent = true;
       }
       const shouldValuePersist =
-        !nextRequestDetails.empty &&
+        !nextRequestDetails.disabled &&
         state.dataProvider.shouldPersist(
           nextRequestDetails,
           state.requestDetails,
@@ -166,7 +166,7 @@ function reducer<
         requestDetails: nextRequestDetails,
         request: nextRequest,
         revision: nextRevision,
-        isLoading: !nextRequestDetails.empty,
+        isLoading: !nextRequestDetails.disabled,
         value: shouldValuePersist
           ? state.value
           : {
@@ -175,14 +175,14 @@ function reducer<
               options: nextRequestDetails.options,
               request: nextRequest,
               revision: nextRevision,
-              data: state.dataProvider.getEmptyResponse(
+              data: state.dataProvider.createEmptyResponse(
                 nextRequestDetails,
               ) as ResponseI,
               meta: {},
               error: undefined,
-              isEmpty: !!nextRequestDetails.empty,
-              isIncomplete: !nextRequestDetails.empty,
-              isInitial: !nextRequestDetails.empty,
+              isDisabled: !!nextRequestDetails.disabled,
+              isIncomplete: !nextRequestDetails.disabled,
+              isInitial: !nextRequestDetails.disabled,
             },
         persistent: nextPersistent,
       });
@@ -202,7 +202,7 @@ function reducer<
       >({
         ...state,
         revision: nextRevision,
-        isLoading: !state.requestDetails.empty,
+        isLoading: !state.requestDetails.disabled,
       });
     }
 
@@ -293,7 +293,7 @@ function fetchData<
             data: data!,
             meta: meta.commit(prevValue.meta),
             error: undefined,
-            isEmpty: false,
+            isDisabled: false,
             isIncomplete: !done,
             isInitial: !!prevValue.isInitial && !done,
           };
@@ -344,7 +344,7 @@ export default function useResource<
   dataProvider: dataProviderProp,
   name: nextName,
   query: nextQuery,
-  empty: nextEmpty,
+  disabled: nextDisabled,
   options: nextOptions,
   persistent: nextPersistent,
   ...rest
@@ -356,7 +356,7 @@ export default function useResource<
   /** Query instructions */
   query: QueryI;
   /** Disables fetching data, resulting in an empty data array */
-  empty?: boolean;
+  disabled?: boolean;
   /** Query options for requests */
   options?: OptionsI;
   /** Whether stale data should be retained during the next request - this only applies if name did not change, unless set to "very" */
@@ -376,10 +376,10 @@ export default function useResource<
     () => ({
       name: nextName,
       query: nextQuery,
-      empty: !!nextEmpty,
+      disabled: !!nextDisabled,
       options: nextOptions,
     }),
-    [nextName, nextQuery, nextEmpty, nextOptions],
+    [nextName, nextQuery, nextDisabled, nextOptions],
   );
   const [state, dispatch] = useReducer(reducer, undefined, () => {
     const request = uniqueIdentifier();
@@ -395,21 +395,21 @@ export default function useResource<
       requestDetails: nextRequestDetails,
       request,
       revision,
-      isLoading: !nextRequestDetails.empty,
+      isLoading: !nextRequestDetails.disabled,
       value: {
         name: nextRequestDetails.name,
         query: nextRequestDetails.query,
         options: nextRequestDetails.options,
         request,
         revision,
-        data: currentDataProvider?.getEmptyResponse(
+        data: currentDataProvider?.createEmptyResponse(
           nextRequestDetails,
         ) as ResponseI,
         meta: {},
         error: undefined,
-        isEmpty: !!nextRequestDetails.empty,
-        isIncomplete: !nextRequestDetails.empty,
-        isInitial: !nextRequestDetails.empty,
+        isDisabled: !!nextRequestDetails.disabled,
+        isIncomplete: !nextRequestDetails.disabled,
+        isInitial: !nextRequestDetails.disabled,
       },
       persistent: nextPersistent ?? false,
     });
@@ -472,15 +472,15 @@ export default function useResource<
 
   // DataProvider events
   useEffect(() => {
-    if (requestDetails.empty) return undefined;
+    if (requestDetails.disabled) return undefined;
 
     const unsubscribe = dataProvider.subscribe(requestDetails.name, notify);
     return unsubscribe;
-  }, [requestDetails.empty, dataProvider, requestDetails.name, notify]);
+  }, [requestDetails.disabled, dataProvider, requestDetails.name, notify]);
 
   // Fetch data when instructed
   useEffect(() => {
-    if (instance == null || requestInstruction.requestDetails.empty) {
+    if (instance == null || requestInstruction.requestDetails.disabled) {
       return undefined;
     }
 

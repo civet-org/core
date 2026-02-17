@@ -29,7 +29,7 @@ export default function Resource<
   dataProvider,
   name,
   query,
-  empty,
+  disabled,
   options,
   persistent,
   children,
@@ -42,7 +42,7 @@ export default function Resource<
   /** Query instructions */
   query: QueryI;
   /** Disables fetching data, resulting in an empty data array */
-  empty?: boolean;
+  disabled?: boolean;
   /** Query options for requests */
   options?: OptionsI;
   /** Whether stale data should be retained during the next request - this only applies if name did not change, unless set to "very" */
@@ -60,7 +60,7 @@ export default function Resource<
     dataProvider,
     name,
     query,
-    empty,
+    disabled,
     options,
     persistent,
     ...rest,
