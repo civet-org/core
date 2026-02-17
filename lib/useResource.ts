@@ -450,6 +450,7 @@ export default function useResource<
     const i = (dataProvider.createInstance() ?? {}) as InferInstance<
       InferMetaType<DataProviderI>
     >;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInstance(i);
     return () => {
       dataProvider.releaseInstance(i);
