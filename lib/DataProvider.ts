@@ -22,7 +22,7 @@ export type RequestDetails<Query, Options> = {
 };
 
 export type ResourceBaseContext<
-  GetResult,
+  Response,
   Query,
   Options,
   MetaType extends Meta,
@@ -32,7 +32,7 @@ export type ResourceBaseContext<
   options: Options | undefined;
   request: string;
   revision: string;
-  data: GetResult;
+  data: Response;
   meta: InferSchema<MetaType>;
   error: Error | undefined;
   isEmpty: boolean;
@@ -42,12 +42,11 @@ export type ResourceBaseContext<
 
 export type ResourceContextValue<
   DataProviderI extends GenericDataProvider,
-  GetResultI extends InferGetResult<DataProviderI> =
-    InferGetResult<DataProviderI>,
+  ResponseI extends InferResponse<DataProviderI> = InferResponse<DataProviderI>,
   QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
   OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
   MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
-> = ResourceBaseContext<GetResultI, QueryI, OptionsI, MetaTypeI> & {
+> = ResourceBaseContext<ResponseI, QueryI, OptionsI, MetaTypeI> & {
   dataProvider: DataProviderI;
   isLoading: boolean;
   isStale: boolean;
@@ -74,43 +73,25 @@ export type UIPlugin<
 
 export type Persistence = boolean | 'very';
 
-export interface GetCallback<GetResult> {
-  (error: undefined, done: boolean, result: GetResult): void;
+export interface GetCallback<Response> {
+  (error: undefined, done: boolean, result: Response): void;
   (error: Error, done: boolean, result: undefined): void;
 }
 
-export type ContinuousGet<GetResult> = (
-  callback: GetCallback<GetResult>,
-  /** @deprecated Use the `abortSignal` that is provided by `handleGet` instead. */
-  abortSignal: AbortSignalProxy,
-) => void;
+export type ContinuousGet<Response> = (callback: GetCallback<Response>) => void;
 
 export default abstract class DataProvider<
   Item,
   Query,
   Options,
   MetaType extends Meta = Meta,
-  GetResult extends Item | Item[] = Item | Item[],
-  CreateData = Item,
-  CreateResult = void,
-  UpdateData = Item,
-  UpdateResult = void,
-  PatchData = Partial<Item>,
-  PatchResult = void,
-  RemoveResult = void,
+  Response extends Item | Item[] = Item | Item[],
 > {
   readonly _inferItem!: Item;
   readonly _inferQuery!: Query;
   readonly _inferOptions!: Options;
   readonly _inferMetaType!: MetaType;
-  readonly _inferGetResult!: GetResult;
-  readonly _inferCreateData!: CreateData;
-  readonly _inferCreateResult!: CreateResult;
-  readonly _inferUpdateData!: UpdateData;
-  readonly _inferUpdateResult!: UpdateResult;
-  readonly _inferPatchData!: PatchData;
-  readonly _inferPatchResult!: PatchResult;
-  readonly _inferRemoveResult!: RemoveResult;
+  readonly _inferResponse!: Response;
 
   notifier = new ChannelNotifier();
   readonly contextPlugins: ContextPlugin<unknown, unknown>[] = [];
@@ -166,7 +147,7 @@ export default abstract class DataProvider<
   }
 
   get<
-    GetResultI extends GetResult = GetResult,
+    ResponseI extends Response = Response,
     QueryI extends Query = Query,
     OptionsI extends Options = Options,
     MetaTypeI extends MetaType = MetaType,
@@ -176,9 +157,9 @@ export default abstract class DataProvider<
     options?: OptionsI,
     meta?: MetaLike<MetaTypeI>,
     abortSignal?: AbortSignal,
-  ): Promise<GetResultI> {
+  ): Promise<ResponseI> {
     return new Promise((resolve, reject) =>
-      this.continuousGet<GetResultI, QueryI, OptionsI, MetaTypeI>(
+      this.continuousGet<ResponseI, QueryI, OptionsI, MetaTypeI>(
         resource,
         query,
         options,
@@ -186,7 +167,7 @@ export default abstract class DataProvider<
         (
           error: Error | undefined,
           done: boolean,
-          result: GetResultI | undefined,
+          result: ResponseI | undefined,
         ) => {
           if (error != null) {
             reject(error);
@@ -200,7 +181,7 @@ export default abstract class DataProvider<
                   query,
                   empty: false,
                   options,
-                }) as GetResultI),
+                }) as ResponseI),
             );
         },
         abortSignal,
@@ -209,7 +190,7 @@ export default abstract class DataProvider<
   }
 
   continuousGet<
-    GetResultI extends GetResult = GetResult,
+    ResponseI extends Response = Response,
     QueryI extends Query = Query,
     OptionsI extends Options = Options,
     MetaTypeI extends MetaType = MetaType,
@@ -218,7 +199,7 @@ export default abstract class DataProvider<
     query: QueryI,
     options: OptionsI | undefined,
     meta: MetaLike<MetaTypeI> | undefined,
-    callback: GetCallback<GetResultI>,
+    callback: GetCallback<ResponseI>,
     abortSignal?: AbortSignal,
   ): void {
     const signal = abortSignal == null ? new AbortSignal() : abortSignal;
@@ -230,7 +211,7 @@ export default abstract class DataProvider<
       const cb = (
         error: Error | undefined,
         done: boolean,
-        result: GetResultI | undefined,
+        result: ResponseI | undefined,
       ): void => {
         // prevent updates after completion
         if (signal.locked) return;
@@ -248,7 +229,7 @@ export default abstract class DataProvider<
                 query,
                 empty: false,
                 options,
-              }) as GetResultI),
+              }) as ResponseI),
           );
       };
 
@@ -257,13 +238,12 @@ export default abstract class DataProvider<
       resolve(
         Promise.resolve(
           this.handleGet(resource, query, options, getMeta(meta), proxy) as
-            | Promise<GetResultI | ContinuousGet<GetResultI>>
-            | GetResultI
-            | ContinuousGet<GetResultI>,
+            | Promise<ResponseI | ContinuousGet<ResponseI>>
+            | ResponseI
+            | ContinuousGet<ResponseI>,
         ).then((result) => {
           if (typeof result === 'function') {
-            // DEPRECATED!! `proxy` is being passed down here for backwards compatibility only.
-            (result as ContinuousGet<GetResultI>)(cb, proxy);
+            (result as ContinuousGet<ResponseI>)(cb);
           } else {
             cb(undefined, true, result);
           }
@@ -281,138 +261,9 @@ export default abstract class DataProvider<
     meta: MetaType,
     abortSignal: AbortSignalProxy,
   ):
-    | Promise<GetResult | ContinuousGet<GetResult>>
-    | GetResult
-    | ContinuousGet<GetResult>;
-
-  create<
-    CreateResultI extends CreateResult = CreateResult,
-    CreateDataI extends CreateData = CreateData,
-    OptionsI extends Options = Options,
-    MetaTypeI extends MetaType = MetaType,
-  >(
-    resource: string,
-    data: CreateDataI,
-    options?: OptionsI,
-    meta?: MetaLike<MetaTypeI>,
-  ): Promise<CreateResultI> {
-    return new Promise((resolve) => {
-      if (resource == null) throw new Error('No resource name specified');
-      if (data == null) throw new Error('No data specified');
-      resolve(
-        Promise.resolve(
-          this.handleCreate(resource, data, options, getMeta(meta)) as
-            | Promise<CreateResultI>
-            | CreateResultI,
-        ),
-      );
-    });
-  }
-
-  abstract handleCreate(
-    resource: string,
-    data: CreateData,
-    options: Options | undefined,
-    meta: MetaType,
-  ): Promise<CreateResult> | CreateResult;
-
-  update<
-    UpdateResultI extends UpdateResult = UpdateResult,
-    QueryI extends Query = Query,
-    UpdateDataI extends UpdateData = UpdateData,
-    OptionsI extends Options = Options,
-    MetaTypeI extends MetaType = MetaType,
-  >(
-    resource: string,
-    query: QueryI,
-    data: UpdateDataI,
-    options?: OptionsI,
-    meta?: MetaLike<MetaTypeI>,
-  ): Promise<UpdateResultI> {
-    return new Promise((resolve) => {
-      if (resource == null) throw new Error('No resource name specified');
-      if (data == null) throw new Error('No data specified');
-      resolve(
-        Promise.resolve(
-          this.handleUpdate(resource, query, data, options, getMeta(meta)) as
-            | Promise<UpdateResultI>
-            | UpdateResultI,
-        ),
-      );
-    });
-  }
-
-  abstract handleUpdate(
-    resource: string,
-    query: Query,
-    data: UpdateData,
-    options: Options | undefined,
-    meta: MetaType,
-  ): Promise<UpdateResult> | UpdateResult;
-
-  patch<
-    PatchResultI extends PatchResult = PatchResult,
-    QueryI extends Query = Query,
-    PatchDataI extends PatchData = PatchData,
-    OptionsI extends Options = Options,
-    MetaTypeI extends MetaType = MetaType,
-  >(
-    resource: string,
-    query: QueryI,
-    data: PatchDataI,
-    options?: OptionsI,
-    meta?: MetaLike<MetaTypeI>,
-  ): Promise<PatchResultI> {
-    return new Promise((resolve) => {
-      if (resource == null) throw new Error('No resource name specified');
-      if (data == null) throw new Error('No data specified');
-      resolve(
-        Promise.resolve(
-          this.handlePatch(resource, query, data, options, getMeta(meta)) as
-            | Promise<PatchResultI>
-            | PatchResultI,
-        ),
-      );
-    });
-  }
-
-  abstract handlePatch(
-    resource: string,
-    query: Query,
-    data: PatchData,
-    options: Options | undefined,
-    meta: MetaType,
-  ): Promise<PatchResult> | PatchResult;
-
-  remove<
-    RemoveResultI extends RemoveResult = RemoveResult,
-    QueryI extends Query = Query,
-    OptionsI extends Options = Options,
-    MetaTypeI extends MetaType = MetaType,
-  >(
-    resource: string,
-    query: QueryI,
-    options?: OptionsI,
-    meta?: MetaLike<MetaTypeI>,
-  ): Promise<RemoveResultI> {
-    return new Promise((resolve) => {
-      if (resource == null) throw new Error('No resource name specified');
-      resolve(
-        Promise.resolve(
-          this.handleRemove(resource, query, options, getMeta(meta)) as
-            | Promise<RemoveResultI>
-            | RemoveResultI,
-        ),
-      );
-    });
-  }
-
-  abstract handleRemove(
-    resource: string,
-    query: Query,
-    options: Options | undefined,
-    meta: MetaType,
-  ): Promise<RemoveResult> | RemoveResult;
+    | Promise<Response | ContinuousGet<Response>>
+    | Response
+    | ContinuousGet<Response>;
 
   compareRequests(
     nextRequestDetails: RequestDetails<Query, Options>,
@@ -421,15 +272,15 @@ export default abstract class DataProvider<
     return deepEquals(nextRequestDetails, prevRequestDetails);
   }
 
-  getEmptyResponse(_requestDetails: RequestDetails<Query, Options>): GetResult {
-    return undefined as GetResult;
+  getEmptyResponse(_requestDetails: RequestDetails<Query, Options>): Response {
+    return undefined as Response;
   }
 
   shouldPersist(
     nextRequestDetails: RequestDetails<Query, Options>,
     prevRequestDetails: RequestDetails<Query, Options>,
     persistent: Persistence,
-    _context: ResourceBaseContext<GetResult, Query, Options, MetaType>,
+    _context: ResourceBaseContext<Response, Query, Options, MetaType>,
   ): boolean {
     return (
       persistent === 'very' ||
@@ -446,16 +297,16 @@ export default abstract class DataProvider<
   }
 
   transition(
-    nextContext: ResourceBaseContext<GetResult, Query, Options, MetaType>,
-    _prevContext: ResourceBaseContext<GetResult, Query, Options, MetaType>,
-  ): GetResult {
+    nextContext: ResourceBaseContext<Response, Query, Options, MetaType>,
+    _prevContext: ResourceBaseContext<Response, Query, Options, MetaType>,
+  ): Response {
     return nextContext.data;
   }
 
   recycleItems(
-    nextContext: ResourceBaseContext<GetResult, Query, Options, MetaType>,
-    prevContext: ResourceBaseContext<GetResult, Query, Options, MetaType>,
-  ): GetResult {
+    nextContext: ResourceBaseContext<Response, Query, Options, MetaType>,
+    prevContext: ResourceBaseContext<Response, Query, Options, MetaType>,
+  ): Response {
     if (nextContext.data == null || prevContext.data == null)
       return nextContext.data;
     const nextItems = Array.isArray(nextContext.data)
@@ -488,7 +339,7 @@ export default abstract class DataProvider<
       result = nextItems;
     }
     if (!Array.isArray(nextContext.data)) {
-      return result[0] as GetResult;
+      return result[0] as Response;
     }
     if (
       prevItems.length === result.length &&
@@ -497,9 +348,9 @@ export default abstract class DataProvider<
         true,
       )
     ) {
-      return prevItems as GetResult;
+      return prevItems as Response;
     }
-    return result as GetResult;
+    return result as Response;
   }
 }
 
@@ -521,49 +372,11 @@ export type DataProviderImplementation<
       abortSignal: AbortSignalProxy,
     ):
       | Promise<
-          | InferGetResult<DataProviderI>
-          | ContinuousGet<InferGetResult<DataProviderI>>
+          | InferResponse<DataProviderI>
+          | ContinuousGet<InferResponse<DataProviderI>>
         >
-      | InferGetResult<DataProviderI>
-      | ContinuousGet<InferGetResult<DataProviderI>>;
-
-    handleCreate(
-      resource: string,
-      data: InferCreateData<DataProviderI>,
-      options: InferOptions<DataProviderI> | undefined,
-      meta: InferMetaType<DataProviderI>,
-    ):
-      | Promise<InferCreateResult<DataProviderI>>
-      | InferCreateResult<DataProviderI>;
-
-    handleUpdate(
-      resource: string,
-      query: InferQuery<DataProviderI>,
-      data: InferUpdateData<DataProviderI>,
-      options: InferOptions<DataProviderI> | undefined,
-      meta: InferMetaType<DataProviderI>,
-    ):
-      | Promise<InferUpdateResult<DataProviderI>>
-      | InferUpdateResult<DataProviderI>;
-
-    handlePatch(
-      resource: string,
-      query: InferQuery<DataProviderI>,
-      data: InferPatchData<DataProviderI>,
-      options: InferOptions<DataProviderI> | undefined,
-      meta: InferMetaType<DataProviderI>,
-    ):
-      | Promise<InferPatchResult<DataProviderI>>
-      | InferPatchResult<DataProviderI>;
-
-    handleRemove(
-      resource: string,
-      query: InferQuery<DataProviderI>,
-      options: InferOptions<DataProviderI> | undefined,
-      meta: InferMetaType<DataProviderI>,
-    ):
-      | Promise<InferRemoveResult<DataProviderI>>
-      | InferRemoveResult<DataProviderI>;
+      | InferResponse<DataProviderI>
+      | ContinuousGet<InferResponse<DataProviderI>>;
   }
 >;
 
@@ -572,13 +385,6 @@ export type GenericDataProvider = DataProvider<
   unknown,
   unknown,
   Meta,
-  unknown,
-  unknown,
-  unknown,
-  unknown,
-  unknown,
-  unknown,
-  unknown,
   unknown
 >;
 
@@ -600,26 +406,5 @@ export type InferOptions<DataProviderI extends GenericDataProvider> =
 export type InferMetaType<DataProviderI extends GenericDataProvider> =
   DataProviderI['_inferMetaType'];
 
-export type InferGetResult<DataProviderI extends GenericDataProvider> =
-  DataProviderI['_inferGetResult'];
-
-export type InferCreateData<DataProviderI extends GenericDataProvider> =
-  DataProviderI['_inferCreateData'];
-
-export type InferCreateResult<DataProviderI extends GenericDataProvider> =
-  DataProviderI['_inferCreateResult'];
-
-export type InferUpdateData<DataProviderI extends GenericDataProvider> =
-  DataProviderI['_inferUpdateData'];
-
-export type InferUpdateResult<DataProviderI extends GenericDataProvider> =
-  DataProviderI['_inferUpdateResult'];
-
-export type InferPatchData<DataProviderI extends GenericDataProvider> =
-  DataProviderI['_inferPatchData'];
-
-export type InferPatchResult<DataProviderI extends GenericDataProvider> =
-  DataProviderI['_inferPatchResult'];
-
-export type InferRemoveResult<DataProviderI extends GenericDataProvider> =
-  DataProviderI['_inferRemoveResult'];
+export type InferResponse<DataProviderI extends GenericDataProvider> =
+  DataProviderI['_inferResponse'];
