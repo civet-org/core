@@ -1,7 +1,5 @@
 import DataProvider, {
-  type ContextPlugin,
   type GenericDataProviderImplementation,
-  type UIPlugin,
 } from './DataProvider';
 import type { Constructor } from './utilityTypes';
 
@@ -107,14 +105,8 @@ export default function createPlugin<
       );
     }
 
-    const classCopy = class extends baseDataProviderClass {
-      readonly contextPlugins: ContextPlugin[] = [
-        ...baseDataProviderClass.prototype.contextPlugins,
-      ];
-      readonly uiPlugins: UIPlugin[] = [
-        ...baseDataProviderClass.prototype.uiPlugins,
-      ];
-    } as unknown as PluginBaseDataProvider<BaseDataProvider>;
+    const classCopy =
+      class extends baseDataProviderClass {} as unknown as PluginBaseDataProvider<BaseDataProvider>;
 
     const result = plugin(classCopy);
     if (result == null) {
