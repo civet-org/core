@@ -7,7 +7,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/civet-org/core.git"
+    "url": "git+https://github.com/civet-org/core.git"
   },
   "bugs": {
     "url": "https://github.com/civet-org/core/issues"
