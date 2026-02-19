@@ -1,13 +1,13 @@
 {
   "name": "@civet/core",
-  "version": "6.0.2",
+  "version": "6.1.0",
   "description": "Civet",
   "author": {
     "name": "Aaron Burmeister"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/civet-org/core.git"
+    "url": "git+https://github.com/civet-org/core.git"
   },
   "bugs": {
     "url": "https://github.com/civet-org/core/issues"
