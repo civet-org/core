@@ -14,6 +14,17 @@ export default class ChannelNotifier<TriggerArgs extends unknown[] = never[]> {
     return this.channels[channel].subscribe(callback);
   };
 
+  once = (
+    channel: string,
+    callback: (...args: TriggerArgs) => void,
+  ): (() => void) => {
+    if (channel == null || !`${channel}`) {
+      throw new Error('Channel is required');
+    }
+    if (this.channels[channel] == null) this.channels[channel] = new Notifier();
+    return this.channels[channel].once(callback);
+  };
+
   isSubscribed = (
     channel: string,
     callback: (...args: TriggerArgs) => void,

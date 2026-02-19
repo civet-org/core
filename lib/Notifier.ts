@@ -11,6 +11,14 @@ export default class Notifier<TriggerArgs extends unknown[] = never[]> {
     };
   };
 
+  once = (callback: (...args: TriggerArgs) => void): (() => void) => {
+    const unsub = this.subscribe((...args) => {
+      unsub();
+      callback(...args);
+    });
+    return unsub;
+  };
+
   isSubscribed = (callback: (...args: TriggerArgs) => void): boolean =>
     this.listeners.has(callback);
 
