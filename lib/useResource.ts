@@ -344,7 +344,7 @@ export default function useResource<
   MetaTypeI extends InferMetaType<DataProviderI> = InferMetaType<DataProviderI>,
 >({
   dataProvider: dataProviderProp,
-  name: nextName,
+  name: nameProp,
   query: nextQuery,
   disabled: nextDisabled,
   options: nextOptions,
@@ -373,6 +373,7 @@ export default function useResource<
   InferContextPluginTypes<DataProviderI> {
   const configContext = useConfigContext<DataProviderI>();
   const currentDataProvider = dataProviderProp || configContext.dataProvider!;
+  const nextName = currentDataProvider?.normalizeResource(nameProp) ?? nameProp;
 
   const nextRequestDetails = useMemo<RequestDetails<QueryI, OptionsI>>(
     () => ({
