@@ -153,13 +153,17 @@ export default abstract class DataProvider<
 
   releaseInstance(_: InferInstance<MetaType>): void {}
 
+  normalizeResource(resource: string): string {
+    return resource;
+  }
+
   subscribe(resource: string, callback: () => void): () => void {
     if (resource == null) throw new Error('No resource name specified');
-    return this.notifier.subscribe(resource, callback);
+    return this.notifier.subscribe(this.normalizeResource(resource), callback);
   }
 
   notify(resource: string): void {
-    this.notifier.trigger(resource);
+    this.notifier.trigger(this.normalizeResource(resource));
   }
 
   get<
@@ -176,7 +180,7 @@ export default abstract class DataProvider<
   ): Promise<ResponseI> {
     return new Promise((resolve, reject) =>
       this.continuousGet<ResponseI, QueryI, OptionsI, MetaTypeI>(
-        resource,
+        this.normalizeResource(resource),
         query,
         options,
         meta,
@@ -193,7 +197,7 @@ export default abstract class DataProvider<
             resolve(
               result ??
                 (this.createEmptyResponse({
-                  name: resource,
+                  name: this.normalizeResource(resource),
                   query,
                   disabled: false,
                   options,
@@ -241,7 +245,7 @@ export default abstract class DataProvider<
             done,
             result ??
               (this.createEmptyResponse({
-                name: resource,
+                name: this.normalizeResource(resource),
                 query,
                 disabled: false,
                 options,
@@ -253,7 +257,13 @@ export default abstract class DataProvider<
 
       resolve(
         Promise.resolve(
-          this.handleGet(resource, query, options, getMeta(meta), proxy) as
+          this.handleGet(
+            this.normalizeResource(resource),
+            query,
+            options,
+            getMeta(meta),
+            proxy,
+          ) as
             | Promise<ResponseI | ContinuousGet<ResponseI>>
             | ResponseI
             | ContinuousGet<ResponseI>,
