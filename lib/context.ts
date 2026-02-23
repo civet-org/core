@@ -3,7 +3,6 @@ import {
   useContext,
   type Consumer,
   type ConsumerProps,
-  type ExoticComponent,
   type Provider,
   type ProviderProps,
   type ReactNode,
@@ -27,12 +26,13 @@ export const ConfigContext = createContext<
   ConfigContextValue<GenericDataProvider>
 >({});
 ConfigContext.displayName = 'ConfigContext';
-export const ConfigConsumer =
-  ConfigContext.Consumer as ExoticComponent<GenericDataProvider> & {
-    <DataProviderI extends GenericDataProvider>(
-      props: ConsumerProps<ConfigContextValue<DataProviderI>>,
-    ): ReactNode;
-  };
+export const ConfigConsumer = ConfigContext.Consumer as Consumer<
+  ConfigContextValue<GenericDataProvider>
+> & {
+  <DataProviderI extends GenericDataProvider>(
+    props: ConsumerProps<ConfigContextValue<DataProviderI>>,
+  ): ReactNode;
+};
 export const useConfigContext = <DataProviderI extends GenericDataProvider>() =>
   useContext(ConfigContext) as ConfigContextValue<DataProviderI>;
 
@@ -57,56 +57,56 @@ const ResourceContext = createContext<
   notify: () => Promise.reject(new Error('Missing context provider')),
 });
 ResourceContext.displayName = 'ResourceContext';
-export const ResourceContextProvider =
-  ResourceContext.Provider as Provider<GenericDataProvider> & {
-    <
-      DataProviderI extends GenericDataProvider,
-      ResponseI extends InferResponse<DataProviderI> =
-        InferResponse<DataProviderI>,
-      QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
-      OptionsI extends InferOptions<DataProviderI> =
-        InferOptions<DataProviderI>,
-      MetaTypeI extends InferMetaType<DataProviderI> =
-        InferMetaType<DataProviderI>,
-    >(
-      props: ProviderProps<
-        ResourceContextValue<
-          DataProviderI,
-          ResponseI,
-          QueryI,
-          OptionsI,
-          MetaTypeI
-        > &
-          InferContextPluginTypes<DataProviderI> &
-          InferUIPluginTypes<DataProviderI>
-      >,
-    ): ReactNode;
-  };
-export const ResourceConsumer =
-  ResourceContext.Consumer as Consumer<GenericDataProvider> & {
-    <
-      DataProviderI extends GenericDataProvider,
-      ResponseI extends InferResponse<DataProviderI> =
-        InferResponse<DataProviderI>,
-      QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
-      OptionsI extends InferOptions<DataProviderI> =
-        InferOptions<DataProviderI>,
-      MetaTypeI extends InferMetaType<DataProviderI> =
-        InferMetaType<DataProviderI>,
-    >(
-      props: ConsumerProps<
-        ResourceContextValue<
-          DataProviderI,
-          ResponseI,
-          QueryI,
-          OptionsI,
-          MetaTypeI
-        > &
-          InferContextPluginTypes<DataProviderI> &
-          InferUIPluginTypes<DataProviderI>
-      >,
-    ): ReactNode;
-  };
+export const ResourceContextProvider = ResourceContext.Provider as Provider<
+  ResourceContextValue<GenericDataProvider>
+> & {
+  <
+    DataProviderI extends GenericDataProvider,
+    ResponseI extends InferResponse<DataProviderI> =
+      InferResponse<DataProviderI>,
+    QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
+    OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
+    MetaTypeI extends InferMetaType<DataProviderI> =
+      InferMetaType<DataProviderI>,
+  >(
+    props: ProviderProps<
+      ResourceContextValue<
+        DataProviderI,
+        ResponseI,
+        QueryI,
+        OptionsI,
+        MetaTypeI
+      > &
+        InferContextPluginTypes<DataProviderI> &
+        InferUIPluginTypes<DataProviderI>
+    >,
+  ): ReactNode;
+};
+export const ResourceConsumer = ResourceContext.Consumer as Consumer<
+  ResourceContextValue<GenericDataProvider>
+> & {
+  <
+    DataProviderI extends GenericDataProvider,
+    ResponseI extends InferResponse<DataProviderI> =
+      InferResponse<DataProviderI>,
+    QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
+    OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
+    MetaTypeI extends InferMetaType<DataProviderI> =
+      InferMetaType<DataProviderI>,
+  >(
+    props: ConsumerProps<
+      ResourceContextValue<
+        DataProviderI,
+        ResponseI,
+        QueryI,
+        OptionsI,
+        MetaTypeI
+      > &
+        InferContextPluginTypes<DataProviderI> &
+        InferUIPluginTypes<DataProviderI>
+    >,
+  ): ReactNode;
+};
 export const useResourceContext = <
   DataProviderI extends GenericDataProvider,
   ResponseI extends InferResponse<DataProviderI> = InferResponse<DataProviderI>,
