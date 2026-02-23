@@ -38,7 +38,7 @@ export default class ChannelNotifier<TriggerArgs extends unknown[] = never[]> {
     );
   };
 
-  trigger = (channel: string, ...args: TriggerArgs): void => {
+  trigger = (channel: string | undefined, ...args: TriggerArgs): void => {
     if (channel == null) {
       Object.values(this.channels).forEach((notifier) =>
         notifier.trigger(...args),
