@@ -162,8 +162,10 @@ export default abstract class DataProvider<
     return this.notifier.subscribe(this.normalizeResource(resource), callback);
   }
 
-  notify(resource: string): void {
-    this.notifier.trigger(this.normalizeResource(resource));
+  notify(resource?: string): void {
+    this.notifier.trigger(
+      resource == null ? undefined : this.normalizeResource(resource),
+    );
   }
 
   get<
