@@ -1,7 +1,15 @@
-export default class Notifier<TriggerArgs extends unknown[] = never[]> {
-  listeners = new Set<(...args: TriggerArgs) => void>();
+export type NotifierCallback<TriggerArgs extends unknown[]> = {
+  bivarianceHack(...args: TriggerArgs): void;
+}['bivarianceHack'];
 
-  subscribe = (callback: (...args: TriggerArgs) => void): (() => void) => {
+type NotifierTrigger<TriggerArgs extends unknown[]> = {
+  bivarianceHack(...args: TriggerArgs): void;
+}['bivarianceHack'];
+
+export default class Notifier<TriggerArgs extends unknown[] = never[]> {
+  listeners = new Set<NotifierCallback<TriggerArgs>>();
+
+  subscribe = (callback: NotifierCallback<TriggerArgs>): (() => void) => {
     if (typeof callback !== 'function') {
       throw new Error('Callback must be a function');
     }
@@ -11,7 +19,7 @@ export default class Notifier<TriggerArgs extends unknown[] = never[]> {
     };
   };
 
-  once = (callback: (...args: TriggerArgs) => void): (() => void) => {
+  once = (callback: NotifierCallback<TriggerArgs>): (() => void) => {
     const unsub = this.subscribe((...args) => {
       unsub();
       callback(...args);
@@ -19,10 +27,10 @@ export default class Notifier<TriggerArgs extends unknown[] = never[]> {
     return unsub;
   };
 
-  isSubscribed = (callback: (...args: TriggerArgs) => void): boolean =>
+  isSubscribed = (callback: NotifierCallback<TriggerArgs>): boolean =>
     this.listeners.has(callback);
 
-  trigger = (...args: TriggerArgs): void => {
+  trigger: NotifierTrigger<TriggerArgs> = (...args: TriggerArgs): void => {
     this.listeners.forEach((callback) => callback(...args));
   };
 }
