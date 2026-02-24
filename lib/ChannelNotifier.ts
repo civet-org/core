@@ -1,11 +1,15 @@
-import Notifier from './Notifier';
+import Notifier, { type NotifierCallback } from './Notifier';
+
+type ChannelNotifierTrigger<TriggerArgs extends unknown[]> = {
+  bivarianceHack(channel: string | undefined, ...args: TriggerArgs): void;
+}['bivarianceHack'];
 
 export default class ChannelNotifier<TriggerArgs extends unknown[] = never[]> {
   private channels: { [channel: string]: Notifier<TriggerArgs> } = {};
 
   subscribe = (
     channel: string,
-    callback: (...args: TriggerArgs) => void,
+    callback: NotifierCallback<TriggerArgs>,
   ): (() => void) => {
     if (channel == null || !`${channel}`) {
       throw new Error('Channel is required');
@@ -16,7 +20,7 @@ export default class ChannelNotifier<TriggerArgs extends unknown[] = never[]> {
 
   once = (
     channel: string,
-    callback: (...args: TriggerArgs) => void,
+    callback: NotifierCallback<TriggerArgs>,
   ): (() => void) => {
     if (channel == null || !`${channel}`) {
       throw new Error('Channel is required');
@@ -27,7 +31,7 @@ export default class ChannelNotifier<TriggerArgs extends unknown[] = never[]> {
 
   isSubscribed = (
     channel: string,
-    callback: (...args: TriggerArgs) => void,
+    callback: NotifierCallback<TriggerArgs>,
   ): boolean => {
     if (channel == null || !`${channel}`) {
       throw new Error('Channel is required');
@@ -38,7 +42,10 @@ export default class ChannelNotifier<TriggerArgs extends unknown[] = never[]> {
     );
   };
 
-  trigger = (channel: string | undefined, ...args: TriggerArgs): void => {
+  trigger: ChannelNotifierTrigger<TriggerArgs> = (
+    channel: string | undefined,
+    ...args: TriggerArgs
+  ): void => {
     if (channel == null) {
       Object.values(this.channels).forEach((notifier) =>
         notifier.trigger(...args),
