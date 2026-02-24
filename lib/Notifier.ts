@@ -7,7 +7,7 @@ type NotifierTrigger<TriggerArgs extends unknown[]> = {
 }['bivarianceHack'];
 
 export default class Notifier<TriggerArgs extends unknown[] = never[]> {
-  listeners = new Set<NotifierCallback<TriggerArgs>>();
+  listeners: Set<NotifierCallback<TriggerArgs>> = new Set();
 
   subscribe = (callback: NotifierCallback<TriggerArgs>): (() => void) => {
     if (typeof callback !== 'function') {
