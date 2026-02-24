@@ -1,16 +1,15 @@
-import type { ReactNode } from 'react';
+import type { PropsWithChildren } from 'react';
 import type {
   GenericDataProvider,
   InferResponse,
   InferMetaType,
   InferOptions,
   InferQuery,
-  Persistence,
   InferUIPluginProps,
   InferContextPluginProps,
 } from './DataProvider';
 import ResourceProvider from './ResourceProvider';
-import useResource from './useResource';
+import useResource, { type ResourceProps } from './useResource';
 
 /**
  * Provides data based on the given request details and DataProvider.
@@ -35,22 +34,11 @@ export default function Resource<
   persistent,
   children,
   ...rest
-}: {
-  /** DataProvider to be used for requests - must not be changed */
-  dataProvider?: DataProviderI;
-  /** Resource name */
-  name: string;
-  /** Query instructions */
-  query: QueryI;
-  /** Disables fetching data, resulting in an empty data array */
-  disabled?: boolean;
-  /** Query options for requests */
-  options?: OptionsI;
-  /** Whether stale data should be retained during the next request - this only applies if name did not change, unless set to "very" */
-  persistent?: Persistence;
-  children?: ReactNode;
-} & InferContextPluginProps<DataProviderI> &
-  InferUIPluginProps<DataProviderI>) {
+}: PropsWithChildren<
+  ResourceProps<DataProviderI, QueryI, OptionsI> &
+    InferContextPluginProps<DataProviderI> &
+    InferUIPluginProps<DataProviderI>
+>) {
   const context = useResource<
     DataProviderI,
     ResponseI,

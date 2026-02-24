@@ -329,6 +329,25 @@ function fetchData<
   );
 }
 
+export type ResourceProps<
+  DataProviderI extends GenericDataProvider,
+  QueryI extends InferQuery<DataProviderI> = InferQuery<DataProviderI>,
+  OptionsI extends InferOptions<DataProviderI> = InferOptions<DataProviderI>,
+> = {
+  /** DataProvider to be used for requests - must not be changed */
+  dataProvider?: DataProviderI;
+  /** Resource name */
+  name: string;
+  /** Query instructions */
+  query: QueryI;
+  /** Disables fetching data, resulting in an empty data array */
+  disabled?: boolean;
+  /** Query options for requests */
+  options?: OptionsI;
+  /** Whether stale data should be retained during the next request - this only applies if name did not change, unless set to "very" */
+  persistent?: Persistence;
+};
+
 /**
  * Provides data based on the given request details and DataProvider.
  *
@@ -350,20 +369,8 @@ export default function useResource<
   options: nextOptions,
   persistent: nextPersistent,
   ...rest
-}: {
-  /** DataProvider to be used for requests - must not be changed */
-  dataProvider?: DataProviderI;
-  /** Resource name */
-  name: string;
-  /** Query instructions */
-  query: QueryI;
-  /** Disables fetching data, resulting in an empty data array */
-  disabled?: boolean;
-  /** Query options for requests */
-  options?: OptionsI;
-  /** Whether stale data should be retained during the next request - this only applies if name did not change, unless set to "very" */
-  persistent?: Persistence;
-} & InferContextPluginProps<DataProviderI>): ResourceContextValue<
+}: ResourceProps<DataProviderI, QueryI, OptionsI> &
+  InferContextPluginProps<DataProviderI>): ResourceContextValue<
   DataProviderI,
   ResponseI,
   QueryI,
