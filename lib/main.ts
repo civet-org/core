@@ -46,6 +46,7 @@ export { default as Notifier } from './Notifier';
 export { default as Resource } from './Resource';
 export { default as ResourceProvider } from './ResourceProvider';
 export { default as useResource } from './useResource';
+export type { ResourceProps } from './useResource';
 export type { Constructor, GenericObject } from './utilityTypes';
 export {
   ConfigConsumer,
