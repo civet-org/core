@@ -24,11 +24,10 @@
     "noUncheckedSideEffectImports": true,
 
     /* Path aliases */
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./lib/*"],
       "@demo/*": ["./demo/*"]
     }
   },
-  "include": ["demo", "lib"]
+  "include": ["./demo", "./lib"]
 }
